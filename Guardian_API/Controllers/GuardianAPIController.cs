@@ -1,5 +1,6 @@
 ﻿using Guardian.Application.DTO;
 using Guardian.Data;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Guardian_API.Controllers
@@ -20,7 +21,7 @@ namespace Guardian_API.Controllers
         }
 
         //When you have the same type of verb, it is necessary to give a name to them
-        [HttpGet ("{id:int}", Name ="Get by Id")]
+        [HttpGet("{id:int}", Name = "Get by Id")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -30,7 +31,7 @@ namespace Guardian_API.Controllers
         //[ProducesResponseType(400)]
         public ActionResult<GuardianDTO> GetById(int id)
         {
-            if(id == 0)
+            if (id == 0)
             {
                 //BadResquest == StatusCode 400 ()
                 return BadRequest();
@@ -48,20 +49,88 @@ namespace Guardian_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         //When you are working with HTTP post, typically the object that you recive is from body
-        public ActionResult<GuardianDTO> Create([FromBody]GuardianDTO guardianDTO)
+        public ActionResult<GuardianDTO> Create([FromBody] GuardianDTO guardianDTO)
         {
+            //ModelState is used to verify if the class rules are being followed (Custom validations witg Data Notatiosn)
+            //if (!ModelState.IsValid)
+            //{
+            //    return BadRequest(ModelState);
+            //}
+
+            //Creating a custom model state
+            if (GuardianData.guardianList.FirstOrDefault(x => x.Name.ToLower() == guardianDTO.Name.ToLower()) != null)
+            {
+                ModelState.AddModelError("CustomError", "This name already exists!");
+                return BadRequest(ModelState);
+            }
+
             if (guardianDTO == null)
             {
                 return BadRequest(guardianDTO);
             }
             if (guardianDTO.Id > 0 || guardianDTO.Name == "")
             {
-                return BadRequest(StatusCodes.Status500InternalServerError);                
+                return BadRequest(StatusCodes.Status500InternalServerError);
             }
             guardianDTO.Id = GuardianData.guardianList.OrderByDescending(x => x.Id).FirstOrDefault().Id + 1;
             GuardianData.guardianList.Add(guardianDTO);
 
-            return CreatedAtRoute("Get by Id", new { id = guardianDTO.Id}, guardianDTO); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
+            return CreatedAtRoute("Get by Id", new { id = guardianDTO.Id }, guardianDTO); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
+        }
+
+        [HttpDelete("{id:int}", Name = "Delete")]
+        //Delete does not return any data, so it not necessary to give a return in IActionResult
+        public IActionResult Delete(int id)
+        {
+            if (id == 0)
+                return BadRequest();
+
+            var result = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
+
+            if (result == null)
+                return NotFound();
+            else
+                GuardianData.guardianList.Remove(result);
+
+            return NoContent(); // It could be 'Ok'
+        }
+
+        //Used to update the complete object
+        [HttpPut("{id:int}", Name = "Update")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Put(int id, GuardianDTO guardianDTO)
+        {
+            if (guardianDTO == null || id != guardianDTO.Id)
+            {
+                return BadRequest();
+            }
+            var objectGuardian = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
+            objectGuardian.Name = guardianDTO.Name;
+            objectGuardian.Occupancy = guardianDTO.Occupancy;
+            objectGuardian.Description = guardianDTO.Description;
+
+            return NoContent(); // It could be 'Ok'
+        }
+        //Used to update only one specific property
+        [HttpPatch("{id:int}", Name = "UpdateProperty")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdatePatch(int id, JsonPatchDocument<GuardianDTO> patchDTO)
+        {
+            if (patchDTO == null || id == 0)
+                return BadRequest();    
+            
+            var objectGuardian = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
+            if(objectGuardian == null)
+                return BadRequest();
+
+            //Patch makes possible to specify the property that we would like to update
+            patchDTO.ApplyTo(objectGuardian, ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return NoContent();
         }
     }
 }
