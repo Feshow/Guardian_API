@@ -14,7 +14,11 @@ namespace Guardian.Application.DTO
         [Required]
         [MaxLength(30)]
         public string Name { get; set; }
+        [Required]
+        public int Age { get; set; }
+        [Required]
         public int Occupancy { get; set; }
-        public string Description { get; set; }    
+        [Required]
+        public string Adress { get; set; }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Guardian.Application.DTO;
 using Guardian.Data;
-using Guardian_API.Logging;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,22 +10,13 @@ namespace Guardian_API.Controllers
     [ApiController]
     public class GuardianAPIController : ControllerBase
     {
-        #region Logger Dependency Injection - Default
-        ////Logger Dependency Injection - DEFAULT
-        //public ILogger<GuardianAPIController> _logger { get; }
-        ////Because of dependency injection, .NET code will provide the implementation of Logger inthe the _logger, so I do not have to instantiate the class or worry about disposing
-        //public GuardianAPIController(ILogger<GuardianAPIController> logger)
-        //{
-        //    _logger = logger;
-        //}
-        #endregion
-
-        private readonly ILogging _logger;
-
-        public GuardianAPIController(ILogging logger)
+        #region Logger Dependency Injection - DBefault
+        //Logger Dependency Injection - DEFAULT
+        //Because of dependency injection, .NET code will provide the implementation of Logger inthe the _logger, so I do not have to instantiate the class or worry about disposing
+        public GuardianAPIController()
         {
-            _logger = logger;
         }
+        #endregion
 
         //If you do not define HTTP verb, it defaults to [HttpGet]
         [HttpGet]
@@ -34,8 +24,6 @@ namespace Guardian_API.Controllers
         //ActionResult is the emplementation of Interface that is used to return the type we want
         public ActionResult<IEnumerable<GuardianDTO>> Get()
         {
-            //LOG in console window
-            _logger.Log("Getting informations", "");
             //Ok == StatusCode 200 (Success)
             return Ok(GuardianData.guardianList);
         }
@@ -53,7 +41,6 @@ namespace Guardian_API.Controllers
         {
             if (id == 0)
             {
-                _logger.Log($@"Get by ID Error - {id}", "error");
                 //BadResquest == StatusCode 400 ()
                 return BadRequest();
             }
@@ -129,7 +116,6 @@ namespace Guardian_API.Controllers
             var objectGuardian = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
             objectGuardian.Name = guardianDTO.Name;
             objectGuardian.Occupancy = guardianDTO.Occupancy;
-            objectGuardian.Description = guardianDTO.Description;
 
             return NoContent(); // It could be 'Ok'
         }
