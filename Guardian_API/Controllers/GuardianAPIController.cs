@@ -1,7 +1,9 @@
 ﻿using Guardian.Application.DTO;
 using Guardian.Data;
+using Guardian.Domain.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Guardian_API.Controllers
 {
@@ -10,13 +12,13 @@ namespace Guardian_API.Controllers
     [ApiController]
     public class GuardianAPIController : ControllerBase
     {
-        #region Logger Dependency Injection - DBefault
-        //Logger Dependency Injection - DEFAULT
-        //Because of dependency injection, .NET code will provide the implementation of Logger inthe the _logger, so I do not have to instantiate the class or worry about disposing
-        public GuardianAPIController()
+        private readonly ApplicationDbContext _db;
+
+        //Appling Dependency Injection
+        public GuardianAPIController(ApplicationDbContext db)
         {
+            _db = db;
         }
-        #endregion
 
         //If you do not define HTTP verb, it defaults to [HttpGet]
         [HttpGet]
@@ -25,7 +27,7 @@ namespace Guardian_API.Controllers
         public ActionResult<IEnumerable<GuardianDTO>> Get()
         {
             //Ok == StatusCode 200 (Success)
-            return Ok(GuardianData.guardianList);
+            return Ok(_db.Guardians);
         }
 
         //When you have the same type of verb, it is necessary to give a name to them
@@ -44,7 +46,7 @@ namespace Guardian_API.Controllers
                 //BadResquest == StatusCode 400 ()
                 return BadRequest();
             }
-            var response = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
+            var response = _db.Guardians.FirstOrDefault(x => x.Id == id);
             if (response == null)
             {
                 return NotFound();
@@ -66,7 +68,7 @@ namespace Guardian_API.Controllers
             //}
 
             //Creating a custom model state
-            if (GuardianData.guardianList.FirstOrDefault(x => x.Name.ToLower() == guardianDTO.Name.ToLower()) != null)
+            if (_db.Guardians.FirstOrDefault(x => x.Name.ToLower() == guardianDTO.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("CustomError", "This name already exists!");
                 return BadRequest(ModelState);
@@ -80,8 +82,20 @@ namespace Guardian_API.Controllers
             {
                 return BadRequest(StatusCodes.Status500InternalServerError);
             }
-            guardianDTO.Id = GuardianData.guardianList.OrderByDescending(x => x.Id).FirstOrDefault().Id + 1;
-            GuardianData.guardianList.Add(guardianDTO);
+
+            GuardianModel model = new()
+            {
+                Id = guardianDTO.Id,
+                Name = guardianDTO.Name,
+                Age = guardianDTO.Age,
+                Adress = guardianDTO.Adress,
+                Occupancy = guardianDTO.Occupancy,
+                CreatedDate = DateTime.Now,
+                Status = true
+            };
+
+            _db.Guardians.Add(model);
+            _db.SaveChanges();
 
             return CreatedAtRoute("Get by Id", new { id = guardianDTO.Id }, guardianDTO); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
         }
@@ -93,12 +107,13 @@ namespace Guardian_API.Controllers
             if (id == 0)
                 return BadRequest();
 
-            var result = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
+            var guardian = _db.Guardians.FirstOrDefault(x => x.Id == id);
 
-            if (result == null)
+            if (guardian == null)
                 return NotFound();
-            else
-                GuardianData.guardianList.Remove(result);
+
+            _db.Guardians.Remove(guardian);
+            _db.SaveChanges();
 
             return NoContent(); // It could be 'Ok'
         }
@@ -113,9 +128,17 @@ namespace Guardian_API.Controllers
             {
                 return BadRequest();
             }
-            var objectGuardian = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
-            objectGuardian.Name = guardianDTO.Name;
-            objectGuardian.Occupancy = guardianDTO.Occupancy;
+
+            GuardianModel model = new()
+            {
+                Id = guardianDTO.Id,
+                Name = guardianDTO.Name,
+                Age = guardianDTO.Age,
+                Adress = guardianDTO.Adress,
+                Occupancy = guardianDTO.Occupancy
+            };
+            _db.Update(model);
+            _db.SaveChanges();
 
             return NoContent(); // It could be 'Ok'
         }
@@ -126,16 +149,43 @@ namespace Guardian_API.Controllers
         public IActionResult UpdatePatch(int id, JsonPatchDocument<GuardianDTO> patchDTO)
         {
             if (patchDTO == null || id == 0)
-                return BadRequest();    
-            
-            var objectGuardian = GuardianData.guardianList.FirstOrDefault(x => x.Id == id);
-            if(objectGuardian == null)
+                return BadRequest();
+
+            //AsNoTracking tell entity framework core that when you retrive this record, you do not want to track that (Avoid ID problem - will not track the record)
+            //Every time you are retriving one record EF is alwais tracking that
+            var objectGuardian = _db.Guardians.AsNoTracking().FirstOrDefault(x => x.Id == id);
+
+            //It is necessary to convert the model to DTO when we are changing some specific property
+            GuardianDTO guardianDTO = new()
+            {
+                Id = objectGuardian.Id,
+                Name = objectGuardian.Name,
+                Age = objectGuardian.Age,
+                Adress = objectGuardian.Adress,
+                Occupancy = objectGuardian.Occupancy
+            };
+
+            if (objectGuardian == null)
                 return BadRequest();
 
             //Patch makes possible to specify the property that we would like to update
-            patchDTO.ApplyTo(objectGuardian, ModelState);
+            patchDTO.ApplyTo(guardianDTO, ModelState);
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            //It is necessary to convert GuardianDTO to model before update de changes
+            GuardianModel model = new()
+            {
+                Id = guardianDTO.Id,
+                Name = guardianDTO.Name,
+                Age = guardianDTO.Age,
+                Adress = guardianDTO.Adress,
+                Occupancy = guardianDTO.Occupancy
+            };
+
+            //.Updata still updating the whole entity, so if you need to update only one proporty it is necessary go into some store prog and create a store prog to update onw record.
+            _db.Guardians.Update(model);
+            _db.SaveChanges();
 
             return NoContent();
         }

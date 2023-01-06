@@ -17,7 +17,7 @@ namespace Guardian.Application.DTO
         [Required]
         public int Age { get; set; }
         [Required]
-        public int Occupancy { get; set; }
+        public string Occupancy { get; set; }
         [Required]
         public string Adress { get; set; }
     }

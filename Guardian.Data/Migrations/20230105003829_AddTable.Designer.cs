@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Guardian.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230105001410_AddGuardianTable")]
-    partial class AddGuardianTable
+    [Migration("20230105003829_AddTable")]
+    partial class AddTable
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -49,8 +49,9 @@ namespace Guardian.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Occupancy")
-                        .HasColumnType("int");
+                    b.Property<string>("Occupancy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -61,6 +62,20 @@ namespace Guardian.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Guardians");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Adress = "São Paulo",
+                            Age = 22,
+                            CreatedDate = new DateTime(2023, 1, 4, 21, 38, 29, 287, DateTimeKind.Local).AddTicks(3772),
+                            DeletedeDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Felippe Delesporte",
+                            Occupancy = "Software Developer",
+                            Status = true,
+                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 #pragma warning restore 612, 618
         }

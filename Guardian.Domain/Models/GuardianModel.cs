@@ -10,11 +10,11 @@ namespace Guardian.Domain.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public int Age { get; set; }
-        public int Occupancy { get; set; }
+        public string Occupancy { get; set; }
         public string Adress { get; set; }
         public DateTime CreatedDate { get; set; }
-        public DateTime UpdatedDate { get; set; }
-        public DateTime DeletedeDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
+        public DateTime? DeletedeDate { get; set; }
         public bool Status { get; set; }
     }
 }
