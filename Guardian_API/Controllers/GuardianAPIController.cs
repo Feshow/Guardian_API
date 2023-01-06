@@ -59,7 +59,7 @@ namespace Guardian_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         //When you are working with HTTP post, typically the object that you recive is from body
-        public ActionResult<GuardianDTO> Create([FromBody] GuardianDTO guardianDTO)
+        public ActionResult<GuardianDTO> Create([FromBody] GuardianCreateDTO guardianDTO)
         {
             //ModelState is used to verify if the class rules are being followed (Custom validations witg Data Notatiosn)
             //if (!ModelState.IsValid)
@@ -78,26 +78,21 @@ namespace Guardian_API.Controllers
             {
                 return BadRequest(guardianDTO);
             }
-            if (guardianDTO.Id > 0 || guardianDTO.Name == "")
-            {
-                return BadRequest(StatusCodes.Status500InternalServerError);
-            }
 
             GuardianModel model = new()
             {
-                Id = guardianDTO.Id,
                 Name = guardianDTO.Name,
                 Age = guardianDTO.Age,
-                Adress = guardianDTO.Adress,
                 Occupancy = guardianDTO.Occupancy,
-                CreatedDate = DateTime.Now,
-                Status = true
+                Adress = guardianDTO.Adress,
+                CreatedDate = guardianDTO.CreatedDate,
+                Status = guardianDTO.Status
             };
 
             _db.Guardians.Add(model);
             _db.SaveChanges();
 
-            return CreatedAtRoute("Get by Id", new { id = guardianDTO.Id }, guardianDTO); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
+            return CreatedAtRoute("Get by Id", new { id = model.Id }, model); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
         }
 
         [HttpDelete("{id:int}", Name = "Delete")]
@@ -122,7 +117,7 @@ namespace Guardian_API.Controllers
         [HttpPut("{id:int}", Name = "Update")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Put(int id, GuardianDTO guardianDTO)
+        public IActionResult Put(int id, GuardianUpdateDTO guardianDTO)
         {
             if (guardianDTO == null || id != guardianDTO.Id)
             {
@@ -134,14 +129,17 @@ namespace Guardian_API.Controllers
                 Id = guardianDTO.Id,
                 Name = guardianDTO.Name,
                 Age = guardianDTO.Age,
+                Occupancy = guardianDTO.Occupancy,                
                 Adress = guardianDTO.Adress,
-                Occupancy = guardianDTO.Occupancy
+                UpdatedDate = guardianDTO.UpdatedDate,
+                Status = guardianDTO.Status
             };
             _db.Update(model);
             _db.SaveChanges();
 
             return NoContent(); // It could be 'Ok'
         }
+
         //Used to update only one specific property
         [HttpPatch("{id:int}", Name = "UpdateProperty")]
         [ProducesResponseType(StatusCodes.Status201Created)]
