@@ -20,33 +20,24 @@ namespace Guardian_API.Controllers
             _db = db;
         }
 
-        //If you do not define HTTP verb, it defaults to [HttpGet]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        //ActionResult is the emplementation of Interface that is used to return the type we want
-        public ActionResult<IEnumerable<GuardianDTO>> Get()
+        public async Task<ActionResult<IEnumerable<GuardianDTO>>> Get()
         {
-            //Ok == StatusCode 200 (Success)
-            return Ok(_db.Guardians);
+            return Ok(await _db.Guardians.ToListAsync());
         }
 
-        //When you have the same type of verb, it is necessary to give a name to them
         [HttpGet("{id:int}", Name = "Get by Id")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        //OTHER WAYS TO DO:
-        //[ProducesResponseType(200, Type = typeof(GuardianDTO))] //Define what are the multiple response type that can be produced + It is possible to difine the response type
-        //[ProducesResponseType(404)]
-        //[ProducesResponseType(400)]
-        public ActionResult<GuardianDTO> GetById(int id)
+        public async Task<ActionResult<GuardianDTO>> GetById(int id)
         {
             if (id == 0)
             {
-                //BadResquest == StatusCode 400 ()
                 return BadRequest();
             }
-            var response = _db.Guardians.FirstOrDefault(x => x.Id == id);
+            var response = await _db.Guardians.FirstOrDefaultAsync(x => x.Id == id);
             if (response == null)
             {
                 return NotFound();
@@ -58,17 +49,16 @@ namespace Guardian_API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        //When you are working with HTTP post, typically the object that you recive is from body
-        public ActionResult<GuardianDTO> Create([FromBody] GuardianCreateDTO guardianDTO)
+        public async Task<ActionResult<GuardianDTO>> Create([FromBody] GuardianCreateDTO guardianDTO)
         {
-            //ModelState is used to verify if the class rules are being followed (Custom validations witg Data Notatiosn)
+            //ModelState is used to verify if the class rules are being followed (Custom validations witg Data Notation)
             //if (!ModelState.IsValid)
             //{
             //    return BadRequest(ModelState);
             //}
 
             //Creating a custom model state
-            if (_db.Guardians.FirstOrDefault(x => x.Name.ToLower() == guardianDTO.Name.ToLower()) != null)
+            if (await _db.Guardians.FirstOrDefaultAsync(x => x.Name.ToLower() == guardianDTO.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("CustomError", "This name already exists!");
                 return BadRequest(ModelState);
@@ -89,26 +79,26 @@ namespace Guardian_API.Controllers
                 Status = guardianDTO.Status
             };
 
-            _db.Guardians.Add(model);
-            _db.SaveChanges();
+            await _db.Guardians.AddAsync(model);
+            await _db.SaveChangesAsync();
 
             return CreatedAtRoute("Get by Id", new { id = model.Id }, model); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
         }
 
         [HttpDelete("{id:int}", Name = "Delete")]
         //Delete does not return any data, so it not necessary to give a return in IActionResult
-        public IActionResult Delete(int id)
+        public async Task<IActionResult>Delete(int id)
         {
             if (id == 0)
                 return BadRequest();
 
-            var guardian = _db.Guardians.FirstOrDefault(x => x.Id == id);
+            var guardian = await _db.Guardians.FirstOrDefaultAsync(x => x.Id == id);
 
             if (guardian == null)
                 return NotFound();
 
             _db.Guardians.Remove(guardian);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return NoContent(); // It could be 'Ok'
         }
@@ -117,7 +107,7 @@ namespace Guardian_API.Controllers
         [HttpPut("{id:int}", Name = "Update")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Put(int id, GuardianUpdateDTO guardianDTO)
+        public async Task<IActionResult> Update(int id, GuardianUpdateDTO guardianDTO)
         {
             if (guardianDTO == null || id != guardianDTO.Id)
             {
@@ -135,7 +125,7 @@ namespace Guardian_API.Controllers
                 Status = guardianDTO.Status
             };
             _db.Update(model);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return NoContent(); // It could be 'Ok'
         }
@@ -144,23 +134,27 @@ namespace Guardian_API.Controllers
         [HttpPatch("{id:int}", Name = "UpdateProperty")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdatePatch(int id, JsonPatchDocument<GuardianDTO> patchDTO)
+        public async Task<IActionResult> UpdatePatch(int id, JsonPatchDocument<GuardianUpdateDTO> patchDTO)
         {
             if (patchDTO == null || id == 0)
                 return BadRequest();
 
             //AsNoTracking tell entity framework core that when you retrive this record, you do not want to track that (Avoid ID problem - will not track the record)
             //Every time you are retriving one record EF is alwais tracking that
-            var objectGuardian = _db.Guardians.AsNoTracking().FirstOrDefault(x => x.Id == id);
+            var objectGuardian = await _db.Guardians.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
             //It is necessary to convert the model to DTO when we are changing some specific property
-            GuardianDTO guardianDTO = new()
+            GuardianUpdateDTO guardianDTO = new()
             {
                 Id = objectGuardian.Id,
                 Name = objectGuardian.Name,
                 Age = objectGuardian.Age,
+                Occupancy = objectGuardian.Occupancy,
                 Adress = objectGuardian.Adress,
-                Occupancy = objectGuardian.Occupancy
+                //UpdatedDate = objectGuardian.UpdatedDate,
+                UpdatedDate = DateTime.Now,
+                Status = objectGuardian.Status
+
             };
 
             if (objectGuardian == null)
@@ -178,12 +172,14 @@ namespace Guardian_API.Controllers
                 Name = guardianDTO.Name,
                 Age = guardianDTO.Age,
                 Adress = guardianDTO.Adress,
-                Occupancy = guardianDTO.Occupancy
+                Occupancy = guardianDTO.Occupancy,
+                UpdatedDate = guardianDTO.UpdatedDate,
+                Status = guardianDTO.Status
             };
 
             //.Updata still updating the whole entity, so if you need to update only one proporty it is necessary go into some store prog and create a store prog to update onw record.
             _db.Guardians.Update(model);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return NoContent();
         }

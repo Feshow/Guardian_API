@@ -22,7 +22,7 @@ namespace Guardian.Application.DTO
         [Required]
         public string Adress { get; set; }
         [Required]
-        public DateTime UpdatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
         public bool Status { get; set; }
     }
 }
