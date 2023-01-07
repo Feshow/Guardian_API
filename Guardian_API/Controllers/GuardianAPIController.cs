@@ -1,4 +1,5 @@
-﻿using Guardian.Application.DTO;
+﻿using AutoMapper;
+using Guardian.Application.DTO;
 using Guardian.Data;
 using Guardian.Domain.Models;
 using Microsoft.AspNetCore.JsonPatch;
@@ -13,18 +14,21 @@ namespace Guardian_API.Controllers
     public class GuardianAPIController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
+        private readonly IMapper _mapper;
 
         //Appling Dependency Injection
-        public GuardianAPIController(ApplicationDbContext db)
+        public GuardianAPIController(ApplicationDbContext db, IMapper mapper)
         {
             _db = db;
+            _mapper = mapper;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<GuardianDTO>>> Get()
         {
-            return Ok(await _db.Guardians.ToListAsync());
+            IEnumerable<GuardianModel> guardianList = await _db.Guardians.ToListAsync();
+            return Ok(_mapper.Map<List<GuardianDTO>>(guardianList));
         }
 
         [HttpGet("{id:int}", Name = "Get by Id")]
@@ -33,51 +37,35 @@ namespace Guardian_API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GuardianDTO>> GetById(int id)
         {
-            if (id == 0)
-            {
-                return BadRequest();
-            }
+            if (id == 0)            
+                return BadRequest();            
+            
             var response = await _db.Guardians.FirstOrDefaultAsync(x => x.Id == id);
-            if (response == null)
-            {
+            
+            if (response == null)           
                 return NotFound();
-            }
-            return Ok(response);
+            
+            return Ok(_mapper.Map<GuardianDTO>(response));
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GuardianDTO>> Create([FromBody] GuardianCreateDTO guardianDTO)
+        public async Task<ActionResult<GuardianDTO>> Create([FromBody] GuardianCreateDTO createDTO)
         {
-            //ModelState is used to verify if the class rules are being followed (Custom validations witg Data Notation)
-            //if (!ModelState.IsValid)
-            //{
-            //    return BadRequest(ModelState);
-            //}
-
-            //Creating a custom model state
-            if (await _db.Guardians.FirstOrDefaultAsync(x => x.Name.ToLower() == guardianDTO.Name.ToLower()) != null)
+            if (await _db.Guardians.FirstOrDefaultAsync(x => x.Name.ToLower() == createDTO.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("CustomError", "This name already exists!");
                 return BadRequest(ModelState);
             }
 
-            if (guardianDTO == null)
+            if (createDTO == null)
             {
-                return BadRequest(guardianDTO);
+                return BadRequest(createDTO);
             }
 
-            GuardianModel model = new()
-            {
-                Name = guardianDTO.Name,
-                Age = guardianDTO.Age,
-                Occupancy = guardianDTO.Occupancy,
-                Adress = guardianDTO.Adress,
-                CreatedDate = guardianDTO.CreatedDate,
-                Status = guardianDTO.Status
-            };
+            GuardianModel model = _mapper.Map<GuardianModel>(createDTO);
 
             await _db.Guardians.AddAsync(model);
             await _db.SaveChangesAsync();
@@ -107,26 +95,17 @@ namespace Guardian_API.Controllers
         [HttpPut("{id:int}", Name = "Update")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Update(int id, GuardianUpdateDTO guardianDTO)
+        public async Task<IActionResult> Update(int id, GuardianUpdateDTO updateDTO)
         {
-            if (guardianDTO == null || id != guardianDTO.Id)
+            if (updateDTO == null || id != updateDTO.Id)
             {
                 return BadRequest();
             }
+            
+            GuardianModel model = _mapper.Map<GuardianModel>(updateDTO);
 
-            GuardianModel model = new()
-            {
-                Id = guardianDTO.Id,
-                Name = guardianDTO.Name,
-                Age = guardianDTO.Age,
-                Occupancy = guardianDTO.Occupancy,                
-                Adress = guardianDTO.Adress,
-                UpdatedDate = guardianDTO.UpdatedDate,
-                Status = guardianDTO.Status
-            };
             _db.Update(model);
             await _db.SaveChangesAsync();
-
             return NoContent(); // It could be 'Ok'
         }
 
@@ -142,45 +121,24 @@ namespace Guardian_API.Controllers
             //AsNoTracking tell entity framework core that when you retrive this record, you do not want to track that (Avoid ID problem - will not track the record)
             //Every time you are retriving one record EF is alwais tracking that
             var objectGuardian = await _db.Guardians.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-
-            //It is necessary to convert the model to DTO when we are changing some specific property
-            GuardianUpdateDTO guardianDTO = new()
-            {
-                Id = objectGuardian.Id,
-                Name = objectGuardian.Name,
-                Age = objectGuardian.Age,
-                Occupancy = objectGuardian.Occupancy,
-                Adress = objectGuardian.Adress,
-                //UpdatedDate = objectGuardian.UpdatedDate,
-                UpdatedDate = DateTime.Now,
-                Status = objectGuardian.Status
-
-            };
-
             if (objectGuardian == null)
                 return BadRequest();
 
+            //It is necessary to convert the model to DTO when we are changing some specific property
+            GuardianUpdateDTO guardianDTO = _mapper.Map<GuardianUpdateDTO>(objectGuardian);
+
             //Patch makes possible to specify the property that we would like to update
             patchDTO.ApplyTo(guardianDTO, ModelState);
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
 
             //It is necessary to convert GuardianDTO to model before update de changes
-            GuardianModel model = new()
-            {
-                Id = guardianDTO.Id,
-                Name = guardianDTO.Name,
-                Age = guardianDTO.Age,
-                Adress = guardianDTO.Adress,
-                Occupancy = guardianDTO.Occupancy,
-                UpdatedDate = guardianDTO.UpdatedDate,
-                Status = guardianDTO.Status
-            };
+            GuardianModel model = _mapper.Map<GuardianModel>(guardianDTO);
 
             //.Updata still updating the whole entity, so if you need to update only one proporty it is necessary go into some store prog and create a store prog to update onw record.
             _db.Guardians.Update(model);
             await _db.SaveChangesAsync();
 
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             return NoContent();
         }
     }
