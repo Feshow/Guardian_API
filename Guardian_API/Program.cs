@@ -1,4 +1,6 @@
+using Guardian.Application.Interfaces.IRepository;
 using Guardian.Data;
+using Guardian.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 
 #region Containers / Builder
@@ -9,6 +11,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSqlConnection"));
 });
+
+builder.Services.AddScoped<IGuardianRepository, GuardianRepository>();
 
 builder.Services.AddAutoMapper(typeof(MappingConfig));
 

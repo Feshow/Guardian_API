@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Guardian.Application.DTO;
+using Guardian.Application.Interfaces.IRepository;
 using Guardian.Data;
 using Guardian.Domain.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace Guardian_API.Controllers
 {
@@ -13,21 +15,21 @@ namespace Guardian_API.Controllers
     [ApiController]
     public class GuardianAPIController : ControllerBase
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IGuardianRepository _dbGuardian;
         private readonly IMapper _mapper;
 
         //Appling Dependency Injection
-        public GuardianAPIController(ApplicationDbContext db, IMapper mapper)
+        public GuardianAPIController(IGuardianRepository dbGuardian, IMapper mapper)
         {
-            _db = db;
+            _dbGuardian = dbGuardian;
             _mapper = mapper;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<GuardianDTO>>> Get()
+        public async Task<ActionResult<IEnumerable<GuardianDTO>>> GetAll()
         {
-            IEnumerable<GuardianModel> guardianList = await _db.Guardians.ToListAsync();
+            IEnumerable<GuardianModel> guardianList = await _dbGuardian.GetAllAsync();
             return Ok(_mapper.Map<List<GuardianDTO>>(guardianList));
         }
 
@@ -40,7 +42,7 @@ namespace Guardian_API.Controllers
             if (id == 0)            
                 return BadRequest();            
             
-            var response = await _db.Guardians.FirstOrDefaultAsync(x => x.Id == id);
+            var response = await _dbGuardian.GetAsync(x => x.Id == id);
             
             if (response == null)           
                 return NotFound();
@@ -54,7 +56,7 @@ namespace Guardian_API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GuardianDTO>> Create([FromBody] GuardianCreateDTO createDTO)
         {
-            if (await _db.Guardians.FirstOrDefaultAsync(x => x.Name.ToLower() == createDTO.Name.ToLower()) != null)
+            if (await _dbGuardian.GetAsync(x => x.Name.ToLower() == createDTO.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("CustomError", "This name already exists!");
                 return BadRequest(ModelState);
@@ -67,9 +69,7 @@ namespace Guardian_API.Controllers
 
             GuardianModel model = _mapper.Map<GuardianModel>(createDTO);
 
-            await _db.Guardians.AddAsync(model);
-            await _db.SaveChangesAsync();
-
+            await _dbGuardian.CreateAsync(model);
             return CreatedAtRoute("Get by Id", new { id = model.Id }, model); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
         }
 
@@ -80,15 +80,14 @@ namespace Guardian_API.Controllers
             if (id == 0)
                 return BadRequest();
 
-            var guardian = await _db.Guardians.FirstOrDefaultAsync(x => x.Id == id);
+
+            var guardian = await _dbGuardian.GetAsync(x => x.Id == id);
 
             if (guardian == null)
                 return NotFound();
 
-            _db.Guardians.Remove(guardian);
-            await _db.SaveChangesAsync();
-
-            return NoContent(); // It could be 'Ok'
+            await _dbGuardian.RemoveAsync(guardian);
+            return NoContent();
         }
 
         //Used to update the complete object
@@ -104,8 +103,7 @@ namespace Guardian_API.Controllers
             
             GuardianModel model = _mapper.Map<GuardianModel>(updateDTO);
 
-            _db.Update(model);
-            await _db.SaveChangesAsync();
+            await _dbGuardian.UpdateAsync(model);
             return NoContent(); // It could be 'Ok'
         }
 
@@ -120,7 +118,7 @@ namespace Guardian_API.Controllers
 
             //AsNoTracking tell entity framework core that when you retrive this record, you do not want to track that (Avoid ID problem - will not track the record)
             //Every time you are retriving one record EF is alwais tracking that
-            var objectGuardian = await _db.Guardians.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            var objectGuardian = await _dbGuardian.GetAsync(x => x.Id == id, tracked: false);
             if (objectGuardian == null)
                 return BadRequest();
 
@@ -134,11 +132,11 @@ namespace Guardian_API.Controllers
             GuardianModel model = _mapper.Map<GuardianModel>(guardianDTO);
 
             //.Updata still updating the whole entity, so if you need to update only one proporty it is necessary go into some store prog and create a store prog to update onw record.
-            _db.Guardians.Update(model);
-            await _db.SaveChangesAsync();
+            await _dbGuardian.UpdateAsync(model);            
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            
             return NoContent();
         }
     }
