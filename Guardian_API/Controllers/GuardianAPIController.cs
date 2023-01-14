@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Net;
 
 namespace Guardian_API.Controllers
 {
@@ -15,6 +16,7 @@ namespace Guardian_API.Controllers
     [ApiController]
     public class GuardianAPIController : ControllerBase
     {
+        protected APIResponse _response;
         private readonly IGuardianRepository _dbGuardian;
         private readonly IMapper _mapper;
 
@@ -23,121 +25,217 @@ namespace Guardian_API.Controllers
         {
             _dbGuardian = dbGuardian;
             _mapper = mapper;
+            this._response = new();
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<GuardianDTO>>> GetAll()
+        public async Task<ActionResult<APIResponse>> GetAll()
         {
-            IEnumerable<GuardianModel> guardianList = await _dbGuardian.GetAllAsync();
-            return Ok(_mapper.Map<List<GuardianDTO>>(guardianList));
+            try
+            {
+                IEnumerable<GuardianModel> guardianList = await _dbGuardian.GetAllAsync();
+                _response.Result = _mapper.Map<List<GuardianDTO>>(guardianList);
+                _response.StatusCode = HttpStatusCode.OK;
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
         }
 
         [HttpGet("{id:int}", Name = "Get by Id")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GuardianDTO>> GetById(int id)
+        public async Task<ActionResult<APIResponse>> GetById(int id)
         {
-            if (id == 0)            
-                return BadRequest();            
-            
-            var response = await _dbGuardian.GetAsync(x => x.Id == id);
-            
-            if (response == null)           
-                return NotFound();
-            
-            return Ok(_mapper.Map<GuardianDTO>(response));
+            try
+            {
+                if (id == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
+
+                var response = await _dbGuardian.GetAsync(x => x.Id == id);
+
+                if (response == null)
+                {
+                    _response.StatusCode=HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    return NotFound();
+                }
+
+                _response.Result = _mapper.Map<GuardianDTO>(response);
+                _response.StatusCode = HttpStatusCode.OK;
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GuardianDTO>> Create([FromBody] GuardianCreateDTO createDTO)
+        public async Task<ActionResult<APIResponse>> Create([FromBody] GuardianCreateDTO createDTO)
         {
-            if (await _dbGuardian.GetAsync(x => x.Name.ToLower() == createDTO.Name.ToLower()) != null)
+            try
             {
-                ModelState.AddModelError("CustomError", "This name already exists!");
-                return BadRequest(ModelState);
-            }
+                if (await _dbGuardian.GetAsync(x => x.Name.ToLower() == createDTO.Name.ToLower()) != null)
+                {
+                    ModelState.AddModelError("CustomError", "This name already exists!");
+                    return BadRequest(ModelState);
+                }
 
-            if (createDTO == null)
+                if (createDTO == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    return NotFound();
+                }
+
+                GuardianModel model = _mapper.Map<GuardianModel>(createDTO);
+
+                await _dbGuardian.CreateAsync(model);
+
+                _response.Result = _mapper.Map<GuardianDTO>(model);
+                _response.StatusCode = HttpStatusCode.Created;
+                return CreatedAtRoute("Get by Id", new { id = model.Id }, _response); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
+            }
+            catch (Exception ex)
             {
-                return BadRequest(createDTO);
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
             }
-
-            GuardianModel model = _mapper.Map<GuardianModel>(createDTO);
-
-            await _dbGuardian.CreateAsync(model);
-            return CreatedAtRoute("Get by Id", new { id = model.Id }, model); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
+            return _response;
         }
 
         [HttpDelete("{id:int}", Name = "Delete")]
         //Delete does not return any data, so it not necessary to give a return in IActionResult
-        public async Task<IActionResult>Delete(int id)
+        public async Task<ActionResult<APIResponse>> Delete(int id)
         {
-            if (id == 0)
-                return BadRequest();
+            try
+            {
+                if (id == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
 
+                var guardian = await _dbGuardian.GetAsync(x => x.Id == id);
 
-            var guardian = await _dbGuardian.GetAsync(x => x.Id == id);
+                if (guardian == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    return NotFound();
+                }
 
-            if (guardian == null)
-                return NotFound();
-
-            await _dbGuardian.RemoveAsync(guardian);
-            return NoContent();
+                await _dbGuardian.RemoveAsync(guardian);
+                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.IsSuccess = true;
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
         }
 
         //Used to update the complete object
         [HttpPut("{id:int}", Name = "Update")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Update(int id, GuardianUpdateDTO updateDTO)
+        public async Task<ActionResult<APIResponse>> Update(int id, [FromBody] GuardianUpdateDTO updateDTO)
         {
-            if (updateDTO == null || id != updateDTO.Id)
+            try
             {
-                return BadRequest();
-            }
-            
-            GuardianModel model = _mapper.Map<GuardianModel>(updateDTO);
+                if (updateDTO == null || id != updateDTO.Id)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
 
-            await _dbGuardian.UpdateAsync(model);
-            return NoContent(); // It could be 'Ok'
+                GuardianModel model = _mapper.Map<GuardianModel>(updateDTO);
+
+                await _dbGuardian.UpdateAsync(model);
+                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.IsSuccess = true;
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
         }
 
         //Used to update only one specific property
         [HttpPatch("{id:int}", Name = "UpdateProperty")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdatePatch(int id, JsonPatchDocument<GuardianUpdateDTO> patchDTO)
+        public async Task<ActionResult<APIResponse>> UpdatePatch(int id, JsonPatchDocument<GuardianUpdateDTO> patchDTO)
         {
-            if (patchDTO == null || id == 0)
-                return BadRequest();
+            try
+            {
+                if (patchDTO == null || id == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
 
-            //AsNoTracking tell entity framework core that when you retrive this record, you do not want to track that (Avoid ID problem - will not track the record)
-            //Every time you are retriving one record EF is alwais tracking that
-            var objectGuardian = await _dbGuardian.GetAsync(x => x.Id == id, tracked: false);
-            if (objectGuardian == null)
-                return BadRequest();
+                //AsNoTracking tell entity framework core that when you retrive this record, you do not want to track that (Avoid ID problem - will not track the record)
+                //Every time you are retriving one record EF is alwais tracking that
+                var objectGuardian = await _dbGuardian.GetAsync(x => x.Id == id, tracked: false);
+                if (objectGuardian == null)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
 
-            //It is necessary to convert the model to DTO when we are changing some specific property
-            GuardianUpdateDTO guardianDTO = _mapper.Map<GuardianUpdateDTO>(objectGuardian);
+                //It is necessary to convert the model to DTO when we are changing some specific property
+                GuardianUpdateDTO guardianDTO = _mapper.Map<GuardianUpdateDTO>(objectGuardian);
 
-            //Patch makes possible to specify the property that we would like to update
-            patchDTO.ApplyTo(guardianDTO, ModelState);
+                //Patch makes possible to specify the property that we would like to update
+                patchDTO.ApplyTo(guardianDTO, ModelState);
 
-            //It is necessary to convert GuardianDTO to model before update de changes
-            GuardianModel model = _mapper.Map<GuardianModel>(guardianDTO);
+                //It is necessary to convert GuardianDTO to model before update de changes
+                GuardianModel model = _mapper.Map<GuardianModel>(guardianDTO);
 
-            //.Updata still updating the whole entity, so if you need to update only one proporty it is necessary go into some store prog and create a store prog to update onw record.
-            await _dbGuardian.UpdateAsync(model);            
+                //.Updata still updating the whole entity, so if you need to update only one proporty it is necessary go into some store prog and create a store prog to update onw record.
+                await _dbGuardian.UpdateAsync(model);
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            
-            return NoContent();
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.IsSuccess = true;
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+
         }
     }
 }
