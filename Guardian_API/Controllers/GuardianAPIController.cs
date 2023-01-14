@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
-using Guardian.Application.DTO;
-using Guardian.Application.Interfaces.IRepository;
-using Guardian.Data;
+using Guardian.Application.Interfaces.IRepository.Guardian;
+using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.Models;
+using Guardian.Domain.Models.API;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 using System.Net;
 
 namespace Guardian_API.Controllers

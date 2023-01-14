@@ -1,6 +1,8 @@
-using Guardian.Application.Interfaces.IRepository;
+using Guardian.Application.Interfaces.IRepository.Guardian;
+using Guardian.Application.Interfaces.IRepository.TaskGuardian;
 using Guardian.Data;
-using Guardian.Data.Repository;
+using Guardian.Data.Repository.Guardian;
+using Guardian.Data.Repository.GuardianTask;
 using Microsoft.EntityFrameworkCore;
 
 #region Containers / Builder
@@ -13,6 +15,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 });
 
 builder.Services.AddScoped<IGuardianRepository, GuardianRepository>();
+builder.Services.AddScoped<IGuardianTaskRepository, GuardianTaskRepository>();
 
 builder.Services.AddAutoMapper(typeof(MappingConfig));
 
@@ -20,7 +23,7 @@ builder.Services.AddControllers(option =>
 {
     //return has to be acceptable by our API
     //option.ReturnHttpNotAcceptable = true
-;                       //Make possible to accept XML file at API return
+;                       
 }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

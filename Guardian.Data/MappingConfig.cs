@@ -1,11 +1,7 @@
 ﻿using AutoMapper;
-using Guardian.Application.DTO;
+using Guardian.Domain.DTO.Guardian;
+using Guardian.Domain.DTO.GuardianTask;
 using Guardian.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Guardian.Data
 {
@@ -16,6 +12,10 @@ namespace Guardian.Data
             CreateMap<GuardianModel, GuardianDTO>().ReverseMap();           
             CreateMap<GuardianModel, GuardianCreateDTO>().ReverseMap();
             CreateMap<GuardianModel, GuardianUpdateDTO>().ReverseMap();
+
+            CreateMap<GuardianTaskModel, GuardianTaskDTO>().ReverseMap();
+            CreateMap<GuardianTaskModel, GuardianCreateTaskDTO>().ReverseMap();
+            CreateMap<GuardianTaskModel, GuardianUpdateTaskDTO>().ReverseMap();
         }
     }
 }

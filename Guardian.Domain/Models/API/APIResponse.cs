@@ -1,8 +1,8 @@
 ﻿using System.Net;
 
-namespace Guardian.Domain.Models
+namespace Guardian.Domain.Models.API
 {
-    public  class APIResponse
+    public class APIResponse
     {
         public HttpStatusCode StatusCode { get; set; }
         public bool IsSuccess { get; set; } = true;
