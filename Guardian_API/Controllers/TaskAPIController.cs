@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Guardian.Application.Interfaces.IRepository.TaskGuardian;
+using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.DTO.GuardianTask;
 using Guardian.Domain.Models;
 using Guardian.Domain.Models.API;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -99,7 +101,7 @@ namespace Guardian_API.Controllers
                 _response.IsSuccess = false;
                 _response.ErrorMessages = new List<string>() { ex.ToString() };
             }
-            return(_response);
+            return (_response);
         }
 
         [HttpDelete("{id:int}", Name = "Delete task")]
@@ -126,6 +128,77 @@ namespace Guardian_API.Controllers
                 await _dbTask.UpdateInactivateAsync(task);
                 _response.StatusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
+
+        [HttpPut("{id:int}", Name = "Update task")]
+        public async Task<ActionResult<APIResponse>> UpdateTask(int id, [FromBody] GuardianUpdateTaskDTO updateTaskDTO)
+        {
+            try
+            {
+                if (updateTaskDTO == null || id != updateTaskDTO.Id)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
+
+                GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(updateTaskDTO);
+
+                await _dbTask.UpdateAsync(model);
+                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.IsSuccess = true;
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
+
+        [HttpPatch("{id:int}", Name = "UpdateTaskProperty")]
+        public async Task<ActionResult<APIResponse>> UpdatePatchTask(int id, JsonPatchDocument<GuardianUpdateTaskDTO> patchTaskDTO)
+        {
+            try
+            {
+                if (patchTaskDTO == null || id == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
+                
+                var objectTask = await _dbTask.GetAsync(x => x.Id == id, tracked: false);
+                
+                if (objectTask == null)
+                {
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
+
+                GuardianUpdateTaskDTO taskDTO = _mapper.Map<GuardianUpdateTaskDTO>(objectTask);
+                
+                patchTaskDTO.ApplyTo(taskDTO, ModelState);
+                
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(taskDTO);
+                await _dbTask.UpdateAsync(model);
+
+                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.IsSuccess = true;
+                return Ok(_response);
+
             }
             catch (Exception ex)
             {
