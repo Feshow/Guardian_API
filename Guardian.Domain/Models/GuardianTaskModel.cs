@@ -8,6 +8,10 @@ namespace Guardian.Domain.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
+        [ForeignKey("GuardianModel")]
+        public int IdResponsible { get; set; }
+        public GuardianModel GuardianModel { get; set; }
         public string TaksName { get; set; }
         public string Description { get; set; }
         public int Category { get; set; }

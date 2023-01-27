@@ -4,6 +4,7 @@ using Guardian.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Guardian.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230127003927_AddForeignKeyToGuardianTable2")]
+    partial class AddForeignKeyToGuardianTable2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,9 +82,6 @@ namespace Guardian.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("IdResponsible")
-                        .HasColumnType("int");
-
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
@@ -98,8 +97,6 @@ namespace Guardian.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdResponsible");
-
                     b.ToTable("GuardianTasks");
 
                     b.HasData(
@@ -107,24 +104,12 @@ namespace Guardian.Data.Migrations
                         {
                             Id = 1,
                             Category = 1,
-                            CreatedDate = new DateTime(2023, 1, 26, 21, 52, 9, 910, DateTimeKind.Local).AddTicks(3025),
+                            CreatedDate = new DateTime(2023, 1, 26, 21, 39, 26, 884, DateTimeKind.Local).AddTicks(6522),
                             Description = "Testing fist API by myself",
-                            IdResponsible = 0,
                             Priority = 1,
                             Status = true,
                             TaksName = "First Task"
                         });
-                });
-
-            modelBuilder.Entity("Guardian.Domain.Models.GuardianTaskModel", b =>
-                {
-                    b.HasOne("Guardian.Domain.Models.GuardianModel", "GuardianModel")
-                        .WithMany()
-                        .HasForeignKey("IdResponsible")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GuardianModel");
                 });
 #pragma warning restore 612, 618
         }

@@ -7,6 +7,7 @@ using Guardian.Domain.Models.API;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace Guardian_API.Controllers
 {
@@ -26,6 +27,7 @@ namespace Guardian_API.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetAllTasks()
         {
             try
@@ -44,6 +46,9 @@ namespace Guardian_API.Controllers
         }
 
         [HttpGet("{id:int}", Name = "Get task by Id")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> GetTaskById(int id)
         {
             try
@@ -77,6 +82,9 @@ namespace Guardian_API.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> CreateTask([FromBody] GuardianCreateTaskDTO createTaskDTO)
         {
             try
@@ -138,6 +146,8 @@ namespace Guardian_API.Controllers
         }
 
         [HttpPut("{id:int}", Name = "Update task")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateTask(int id, [FromBody] GuardianUpdateTaskDTO updateTaskDTO)
         {
             try
@@ -149,7 +159,16 @@ namespace Guardian_API.Controllers
                     return BadRequest(_response);
                 }
 
+                var task = await _dbTask.GetAsync(x => x.Id == id, tracked: false);
+                if (task == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    return NotFound();
+                }
+
                 GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(updateTaskDTO);
+                model.CreatedDate = task.CreatedDate;
 
                 await _dbTask.UpdateAsync(model);
                 _response.StatusCode = HttpStatusCode.NoContent;
@@ -165,6 +184,8 @@ namespace Guardian_API.Controllers
         }
 
         [HttpPatch("{id:int}", Name = "UpdateTaskProperty")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdatePatchTask(int id, JsonPatchDocument<GuardianUpdateTaskDTO> patchTaskDTO)
         {
             try
@@ -193,6 +214,8 @@ namespace Guardian_API.Controllers
                     return BadRequest(ModelState);
 
                 GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(taskDTO);
+                model.CreatedDate = objectTask.CreatedDate;
+
                 await _dbTask.UpdateAsync(model);
 
                 _response.StatusCode = HttpStatusCode.NoContent;
