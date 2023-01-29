@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Guardian.Application.Interfaces.IRepository.Guardian;
 using Guardian.Application.Interfaces.IRepository.TaskGuardian;
 using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.DTO.GuardianTask;
@@ -17,13 +18,15 @@ namespace Guardian_API.Controllers
     {
         protected APIResponse _response;
         private readonly IGuardianTaskRepository _dbTask;
+        private readonly IGuardianRepository _dbGuardian;
         private readonly IMapper _mapper;
 
-        public TaskAPIController(IGuardianTaskRepository dbTask, IMapper mapper)
+        public TaskAPIController(IGuardianTaskRepository dbTask, IMapper mapper, IGuardianRepository guardianRepository)
         {
             _dbTask = dbTask;
             _mapper = mapper;
             this._response = new();
+            _dbGuardian = guardianRepository;
         }
 
         [HttpGet]
@@ -96,6 +99,12 @@ namespace Guardian_API.Controllers
                     return NotFound(_response);
                 }
 
+                if (await _dbGuardian.GetAsync(x => x.Id == createTaskDTO.IdResponsible) == null)
+                {
+                    ModelState.AddModelError("CustomError", "IdResponsible is invalid!");
+                    return BadRequest(ModelState);
+                }
+
                 GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(createTaskDTO);
 
                 await _dbTask.CreateAsync(model);
@@ -107,7 +116,7 @@ namespace Guardian_API.Controllers
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
-                _response.ErrorMessages = new List<string>() { ex.ToString() };
+                _response.ErrorMessages = new List<string>() { ex.ToString() };                
             }
             return (_response);
         }
@@ -159,6 +168,12 @@ namespace Guardian_API.Controllers
                     return BadRequest(_response);
                 }
 
+                if (await _dbGuardian.GetAsync(x => x.Id == updateTaskDTO.IdResponsible) == null)
+                {
+                    ModelState.AddModelError("CustomError", "IdResponsible is invalid!");
+                    return BadRequest(ModelState);
+                }
+
                 var task = await _dbTask.GetAsync(x => x.Id == id, tracked: false);
                 if (task == null)
                 {
@@ -167,7 +182,9 @@ namespace Guardian_API.Controllers
                     return NotFound();
                 }
 
-                GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(updateTaskDTO);
+
+                GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(updateTaskDTO);                
+                //Check if it is the best way to set the CreatedDate
                 model.CreatedDate = task.CreatedDate;
 
                 await _dbTask.UpdateAsync(model);
@@ -194,11 +211,11 @@ namespace Guardian_API.Controllers
                 {
                     _response.StatusCode = HttpStatusCode.BadGateway;
                     _response.IsSuccess = false;
-                    return BadRequest(_response);
+                    return BadRequest(ModelState);
                 }
-                
+
                 var objectTask = await _dbTask.GetAsync(x => x.Id == id, tracked: false);
-                
+
                 if (objectTask == null)
                 {
                     _response.StatusCode = HttpStatusCode.BadGateway;
@@ -207,9 +224,15 @@ namespace Guardian_API.Controllers
                 }
 
                 GuardianUpdateTaskDTO taskDTO = _mapper.Map<GuardianUpdateTaskDTO>(objectTask);
-                
+
                 patchTaskDTO.ApplyTo(taskDTO, ModelState);
-                
+
+                if (await _dbGuardian.GetAsync(x => x.Id == taskDTO.IdResponsible) == null)
+                {
+                    ModelState.AddModelError("CustomError", "IdResponsible is invalid!");
+                    return BadRequest(ModelState);
+                }
+
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 

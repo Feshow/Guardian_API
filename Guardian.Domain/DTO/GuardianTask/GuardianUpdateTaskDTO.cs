@@ -17,6 +17,8 @@ namespace Guardian.Domain.DTO.GuardianTask
         public int Priority { get; set; }        
         public bool Status { get; set; }
         [Required]
-        public DateTime UpdatedDate { get; set; } = DateTime.Now;        
+        public DateTime UpdatedDate { get; set; } = DateTime.Now;
+        [Required]
+        public int IdResponsible { get; set; }
     }
 }

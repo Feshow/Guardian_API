@@ -34,7 +34,7 @@ namespace Guardian.Data.Migrations
                 column: "IdResponsible",
                 principalTable: "Guardians",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.);
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

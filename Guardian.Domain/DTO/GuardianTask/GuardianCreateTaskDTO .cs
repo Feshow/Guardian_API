@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Guardian.Domain.DTO.GuardianTask
 {
@@ -19,6 +14,9 @@ namespace Guardian.Domain.DTO.GuardianTask
         public int Priority { get; set; }
         public bool Status { get; set; } = true;
         [Required]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;        
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        [Required]
+        public int IdResponsible { get; set; }
+
     }
 }
