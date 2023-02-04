@@ -1,5 +1,4 @@
-﻿using Guardian.Domain.Models.API;
-using Guardian_Web.Models.API;
+﻿using Guardian_Web.Models.API;
 
 namespace Guardian_Web.Services.IServices
 {

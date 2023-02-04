@@ -1,5 +1,4 @@
-﻿using Guardian.Domain.Models.API;
-using Guardian_Utility;
+﻿using Guardian_Utility;
 using Guardian_Web.Models.API;
 using Guardian_Web.Services.IServices;
 using Newtonsoft.Json;
@@ -57,7 +56,7 @@ namespace Guardian_Web.Services
                 HttpResponseMessage apiResponse = null;
                 apiResponse = await client.SendAsync(message); //Consuming API
 
-                var apiContent = await apiResponse.Content.ReadAsStringAsync();
+                var apiContent = await apiResponse.Content.ReadAsStringAsync();                
                 var apiFinalResponse = JsonConvert.DeserializeObject<T>(apiContent); //The method expects type<T>
 
                 return apiFinalResponse;

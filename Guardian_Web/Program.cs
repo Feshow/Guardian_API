@@ -1,10 +1,17 @@
 using Guardian_Web;
+using Guardian_Web.Services;
+using Guardian_Web.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
+
+//Register Http cliente on service and then register the service
+builder.Services.AddHttpClient<IGuardianService, GuardianService>();
+builder.Services.AddScoped<IGuardianService, GuardianService>(); //Registering GuardianService to dependency injection --> It will have one object of service even if it is required many time, it will use the same object
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Guardian.Domain.Models.API
+namespace Guardian_Web.Models.API
 {
     public class APIResponse
     {
