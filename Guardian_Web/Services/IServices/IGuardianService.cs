@@ -8,6 +8,6 @@ namespace Guardian_Web.Services.IServices
         Task<T> GetAsync<T>(int id);
         Task<T> CreateAsync<T>(GuardianCreateDTO dto);
         Task<T> UpdadeAsync<T>(GuardianUpdateDTO dto);
-        Task DeleteAsync<T>(int id);
+        Task<T>DeleteAsync<T>(int id);
     }
 }

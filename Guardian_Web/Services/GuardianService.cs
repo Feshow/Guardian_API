@@ -26,7 +26,7 @@ namespace Guardian_Web.Services
             });
         }
 
-        public Task DeleteAsync<T>(int id)
+        public Task<T> DeleteAsync<T>(int id)
         {
             return SendAsync<T>(new APIResquest()
             {

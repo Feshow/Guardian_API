@@ -36,8 +36,8 @@
                     <td>@item.Occupancy</td>
                     <td>@item.Adress</td>
                     <td>
-                        <a asp-controller="Guardian" asp-action="UpdateGuardian" class="btn btn-success"><i class="bi bi-pencil-square"></i></a>
-                        <a asp-controller="Guardian" asp-action="DeleteGuardian" class="btn btn-danger"><i class="bi bi-trash-fill"></i></a>
+                        <a asp-controller="Guardian" asp-action="UpdateGuardian" asp-route-guardianId = "@item.Id" class="btn btn-success"><i class="bi bi-pencil-square"></i></a>
+                        <a asp-controller="Guardian" asp-action="DeleteGuardian" asp-route-guardianId="@item.Id" class="btn btn-danger"><i class="bi bi-trash-fill"></i></a>
                     </td>
                 </tr>
             }

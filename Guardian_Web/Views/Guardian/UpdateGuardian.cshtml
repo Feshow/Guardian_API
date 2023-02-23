@@ -1,10 +1,12 @@
-﻿@model Guardian_Web.Models.DTO.Guardian.GuardianCreateDTO
+﻿@model Guardian_Web.Models.DTO.Guardian.GuardianUpdateDTO
 
-<form asp-action="CreateGuardian">
+<form asp-action="UpdateGuardian">
     <br />
     <div class="container border p-3">
         <h1 class="text-primary">Create Guardian</h1>
         <hr />
+
+        <input hidden asp-for="@Model.Id"/>
         <div class="row">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -16,7 +18,7 @@
                 <span asp-validation-for="@Model.Name" class="text-danger"></span>
             </div>
 
-            <div cclass="col-2">
+            <div class="col-2">
                 <label asp-for="Age" class="control-label pt-2" style="font-size: 20px;"></label>
             </div>
             <div class="col-10 pb-3">
@@ -24,15 +26,15 @@
                 <span asp-validation-for="@Model.Age" class="text-danger"></span>
             </div>
 
-            <div cclass="col-2">
+            <div class="col-2">
                 <label asp-for="Occupancy" class="control-label pt-2" style="font-size: 20px;"></label>
             </div>
             <div class="col-10 pb-3">
-                <input asp-for="@Model.Occupancy" class="form-control"  rows="3"/>
+                <input asp-for="@Model.Occupancy" class="form-control" />
                 <span asp-validation-for="@Model.Occupancy" class="text-danger"></span>
             </div>
 
-            <div cclass="col-2">
+            <div class="col-2">
                 <label asp-for="Adress" class="control-label pt-2" style="font-size: 20px;"></label>
             </div>
             <div class="col-10 pb-3">
@@ -45,7 +47,7 @@
             </div>
 
             <div class="col-5">
-                <input type="submit" value="Create" class="btn btn-success form-control" />
+                <input type="submit" value="Confirm" class="btn btn-success form-control" />
             </div>
         </div>
     </div>

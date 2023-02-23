@@ -15,5 +15,7 @@ namespace Guardian_Web.Models.DTO.Guardian
         public string Occupancy { get; set; }
         [Required]
         public string Adress { get; set; }
+        [Required]
+        public DateTime CreatedDate { get; set; }
     }
 }
