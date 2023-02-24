@@ -12,6 +12,9 @@ builder.Services.AddAutoMapper(typeof(MappingConfig));
 builder.Services.AddHttpClient<IGuardianService, GuardianService>();
 builder.Services.AddScoped<IGuardianService, GuardianService>(); //Registering GuardianService to dependency injection --> It will have one object of service even if it is required many time, it will use the same object
 
+builder.Services.AddHttpClient<IGuardianTaskService, GuardianTaskService>();
+builder.Services.AddScoped<IGuardianTaskService, GuardianTaskService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

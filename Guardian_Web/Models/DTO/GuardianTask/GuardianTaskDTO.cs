@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Guardian_Web.Models.DTO.Guardian;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,5 +21,6 @@ namespace Guardian_Web.Models.DTO.GuardianTask
         public DateTime UpdatedDate { get; set; }
         [Required]
         public int IdResponsible { get; set; }
+        public GuardianDTO Guardian { get; set; }
     }
 }
