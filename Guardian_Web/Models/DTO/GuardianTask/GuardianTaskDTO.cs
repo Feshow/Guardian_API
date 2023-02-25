@@ -21,6 +21,6 @@ namespace Guardian_Web.Models.DTO.GuardianTask
         public DateTime UpdatedDate { get; set; }
         [Required]
         public int IdResponsible { get; set; }
-        public GuardianDTO Guardian { get; set; }
+        public GuardianDTO GuardianModel { get; set; }
     }
 }

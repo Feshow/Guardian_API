@@ -35,7 +35,7 @@ namespace Guardian_API.Controllers
         {
             try
             {
-                IEnumerable<GuardianTaskModel> taskList = await _dbTask.GetAllAsync();
+                IEnumerable<GuardianTaskModel> taskList = await _dbTask.GetAllAsync(includeProperties: "GuardianModel"); //includeProperties should match with ctor include in repository
                 _response.Result = _mapper.Map<List<GuardianTaskDTO>>(taskList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
@@ -63,7 +63,7 @@ namespace Guardian_API.Controllers
                     return BadRequest(_response);
                 }
 
-                var response = await _dbTask.GetAsync(x => x.Id == id);
+                var response = await _dbTask.GetAsync(x => x.Id == id, includeProperties: "GuardianModel");
 
                 if (response == null)
                 {

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Guardian.Domain.DTO.Guardian;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Guardian.Domain.DTO.GuardianTask
 {
@@ -20,5 +16,6 @@ namespace Guardian.Domain.DTO.GuardianTask
         public DateTime UpdatedDate { get; set; }
         [Required]
         public int IdResponsible { get; set; }
+        public GuardianDTO GuardianModel { get; set; } //The property name should be equal to FK property in Model class
     }
 }
