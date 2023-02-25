@@ -1,32 +1,37 @@
-﻿using Guardian_Web.Models;
+﻿using AutoMapper;
+using Guardian_Web.Models;
+using Guardian_Web.Models.API;
+using Guardian_Web.Models.DTO.Guardian;
+using Guardian_Web.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Diagnostics;
 
 namespace Guardian_Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly IGuardianService _guardianService;
+        private readonly IMapper _mapper;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(IGuardianService guardianService, IMapper mapper)
         {
-            _logger = logger;
+            _guardianService = guardianService;
+            _mapper = mapper;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
+            List<GuardianDTO> list = new();
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+            var response = await _guardianService.GetAllAsync<APIResponse>();
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            if (response != null && response.IsSuccess)
+            {
+                list = JsonConvert.DeserializeObject<List<GuardianDTO>>(Convert.ToString(response.Result));
+            }
+
+            return View(list);
         }
     }
 }

@@ -1,8 +1,43 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@using Microsoft.AspNetCore.Components;
+@model IEnumerable<Guardian_Web.Models.DTO.Guardian.GuardianDTO>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<img class="d-block w-100" src="images/home/kboard.png" alt="" />
+<hr />
+<div class="row" style="--bs-gutter-x:0">
+    @foreach (var guardian in Model)
+    {
+        <div class="p-4 col-md-12 col-lg-6">
+            <div class="row" style="border-radius:20px; border: 1px solid #ffffff">
+                <div class="col-4">
+                    <img class="d-block w-100" style="border-radius: 20px;" src="images/home/usericon.png" alt="First image">
+                </div>
+                <div class="col-8">
+                    <p class="card-title text-warning" style="font-size:x-large">@guardian.Name</p>
+                    <p class="card-text">
+                        @((MarkupString)guardian.Occupancy)
+                    </p>
+                </div>
+                <div class="col-12">
+                    <div class="row pb-3 pt-2">
+                        <div class="col-4">
+                            <a href="" class="btn btn-success form-control btn-block">Tasks</a>
+                        </div>
+                        
+                        <div class="col-4">
+                            <span class="">Adress: @guardian.Adress</span>
+                        </div>
+
+                        <div class="col-4">
+                            <span class="text-warning float-end font-weight-bold pt-1" style="font-size:25px;">
+                                #Tasks
+                                <span style="border-bottom:1px solid #ff7960">
+                                    9 
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>

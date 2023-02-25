@@ -16,4 +16,8 @@
     <ProjectReference Include="..\Guardian_Utility\Guardian_Utility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\home\" />
+  </ItemGroup>
+
 </Project>
