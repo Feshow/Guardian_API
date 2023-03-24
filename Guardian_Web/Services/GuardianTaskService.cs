@@ -23,7 +23,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = dto,
-                Url = apiUrl + "api/TaskAPI"
+                Url = apiUrl + "/api/TaskAPI"
             });
         }
 
@@ -32,7 +32,7 @@ namespace Guardian_Web.Services
             return SendAsync<T>(new APIResquest()
             {
                 ApiType = SD.ApiType.DELETE,
-                Url = apiUrl + "api/TaskAPI/" + id
+                Url = apiUrl + "/api/TaskAPI/" + id
             });
         }
 

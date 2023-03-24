@@ -1,0 +1,64 @@
+﻿@model Guardian_Web.Models.DTO.GuardianTask.GuardianCreateTaskDTO
+
+<form asp-action="CreateTaskGuardian">
+    <br />
+    <div class="container border p-3">
+        <h1 class="text-primary">Create Guardian</h1>
+        <hr />
+        <div class="row">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="col-2">
+                <label asp-for="TaksName" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="@Model.TaksName" class="form-control" />
+                <span asp-validation-for="@Model.TaksName" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label asp-for="Description" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="@Model.Description" class="form-control" />
+                <span asp-validation-for="@Model.Description" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label asp-for="Category" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="@Model.Category" class="form-control" rows="3" />
+                <span asp-validation-for="@Model.Category" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label asp-for="Priority" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="@Model.Priority" class="form-control" />
+                <span asp-validation-for="@Model.Priority" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label asp-for="IdResponsible" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="@Model.IdResponsible" class="form-control" />
+                <span asp-validation-for="@Model.IdResponsible" class="text-danger"></span>
+            </div>
+
+            <div class="col-5 offset-2">
+                <a asp-controller="Guardian" asp-action="IndexGuardianTask" class="btn-primary btn form-control">Back to list</a>
+            </div>
+
+            <div class="col-5">
+                <input type="submit" value="Create" class="btn btn-success form-control" />
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}

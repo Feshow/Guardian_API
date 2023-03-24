@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Guardian_Web.Models.API;
 using Guardian_Web.Models.DTO.GuardianTask;
+using Guardian_Web.Services;
 using Guardian_Web.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -30,6 +31,29 @@ namespace Guardian_Web.Controllers
             }
 
             return View(list);
+        }
+
+        public async Task<IActionResult> CreateTaskGuardian()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateTaskGuardian(GuardianCreateTaskDTO model)
+        {
+            model.CreatedDate = DateTime.Now;
+            if (ModelState.IsValid)
+            {
+                var response = await _guardianTaskService.CreateAsync<APIResponse>(model);
+
+                if (response != null && response.IsSuccess)
+                {
+                    //Redirect back to the index action method that willl reaload al the table informations
+                    return RedirectToAction(nameof(IndexGuardianTask));
+                }
+            }
+            return View(model);
         }
     }
 }
