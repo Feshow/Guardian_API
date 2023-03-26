@@ -2,6 +2,7 @@
 using Guardian_Web.Models.API;
 using Guardian_Web.Services.IServices;
 using Newtonsoft.Json;
+using System.Net;
 using System.Text;
 
 namespace Guardian_Web.Services
@@ -55,11 +56,29 @@ namespace Guardian_Web.Services
 
                 HttpResponseMessage apiResponse = null;
                 apiResponse = await client.SendAsync(message); //Consuming API
+                var apiContent = await apiResponse.Content.ReadAsStringAsync();
 
-                var apiContent = await apiResponse.Content.ReadAsStringAsync();                
-                var apiFinalResponse = JsonConvert.DeserializeObject<T>(apiContent); //The method expects type<T>
+                try
+                {
+                    APIResponse apiFinalResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent); //API will always retrive APIResponse, that is the reason it is not a type T (generic)
+                    if (apiFinalResponse.StatusCode == HttpStatusCode.BadRequest || apiFinalResponse.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        apiFinalResponse.StatusCode = HttpStatusCode.BadRequest;
+                        apiFinalResponse.IsSuccess = false;
 
-                return apiFinalResponse;
+                        var response = JsonConvert.SerializeObject(apiResponse);
+                        var returnObj = JsonConvert.DeserializeObject<T>(response); //The method expects type<T>
+                        return returnObj;
+                    }
+                }
+                catch (Exception e)
+                {
+                    var exceptionResponse = JsonConvert.DeserializeObject<T>(apiContent);
+                    return exceptionResponse;
+                }
+
+                var APIResponse = JsonConvert.DeserializeObject<T>(apiContent);
+                return APIResponse;
             }
             catch (Exception ex)
             {
@@ -69,8 +88,8 @@ namespace Guardian_Web.Services
                     IsSuccess = false,
                 };
                 var response = JsonConvert.SerializeObject(dto);
-                var apiFinalResponse = JsonConvert.DeserializeObject<T>(response); //The method expects type<T>
-                return apiFinalResponse;
+                var APIResponse = JsonConvert.DeserializeObject<T>(response); //The method expects type<T>
+                return APIResponse;
             }
         }
     }

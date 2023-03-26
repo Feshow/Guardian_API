@@ -91,7 +91,7 @@ namespace Guardian_API.Controllers
             {
                 if (await _dbGuardian.GetAsync(x => x.Name.ToLower() == createDTO.Name.ToLower()) != null)
                 {
-                    ModelState.AddModelError("CustomError", "This name already exists!");
+                    ModelState.AddModelError("ErrorMessages", "This name already exists!");
                     return BadRequest(ModelState);
                 }
 

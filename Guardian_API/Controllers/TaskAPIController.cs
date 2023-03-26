@@ -99,9 +99,15 @@ namespace Guardian_API.Controllers
                     return NotFound(_response);
                 }
 
+                if (!createTaskDTO.IsValid(createTaskDTO))
+                {
+                    ModelState.AddModelError("ErrorMessages", "Task should have title, description and responsible!");
+                    return BadRequest(ModelState);
+                }
+
                 if (await _dbGuardian.GetAsync(x => x.Id == createTaskDTO.IdResponsible) == null)
                 {
-                    ModelState.AddModelError("CustomError", "IdResponsible is invalid!");
+                    ModelState.AddModelError("ErrorMessages", "Responsible does not exist!");
                     return BadRequest(ModelState);
                 }
 
@@ -170,7 +176,7 @@ namespace Guardian_API.Controllers
 
                 if (await _dbGuardian.GetAsync(x => x.Id == updateTaskDTO.IdResponsible) == null)
                 {
-                    ModelState.AddModelError("CustomError", "IdResponsible is invalid!");
+                    ModelState.AddModelError("ErrorMessages", "IdResponsible is invalid!");
                     return BadRequest(ModelState);
                 }
 

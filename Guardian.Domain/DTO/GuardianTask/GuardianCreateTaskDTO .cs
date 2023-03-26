@@ -18,5 +18,9 @@ namespace Guardian.Domain.DTO.GuardianTask
         [Required]
         public int IdResponsible { get; set; }
 
+        public bool IsValid(GuardianCreateTaskDTO task)
+        {
+            return task.TaksName != null && task.Description != null && task.IdResponsible > 0;
+        }
     }
 }
