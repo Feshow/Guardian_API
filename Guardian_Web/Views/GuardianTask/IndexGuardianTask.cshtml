@@ -41,8 +41,8 @@
                     <td>@item.Priority</td>
                     <td>@item.GuardianModel.Name</td>
                     <td>
-                        <a asp-controller="Guardian" asp-action="UpdateGuardianTask" asp-route-guardianTaskId="@item.Id" class="btn btn-success"><i class="bi bi-pencil-square"></i></a>
-                        <a asp-controller="Guardian" asp-action="DeleteGuardianTask" asp-route-guardianTaskId="@item.Id" class="btn btn-danger"><i class="bi bi-trash-fill"></i></a>
+                        <a asp-controller="GuardianTask" asp-action="UpdateTaskGuardian" asp-route-guardianTaskId="@item.Id" class="btn btn-success"><i class="bi bi-pencil-square"></i></a>
+                        <a asp-controller="GuardianTask" asp-action="DeleteTaskGuardian" asp-route-guardianTaskId="@item.Id" class="btn btn-danger"><i class="bi bi-trash-fill"></i></a>
                     </td>
                 </tr>
             }

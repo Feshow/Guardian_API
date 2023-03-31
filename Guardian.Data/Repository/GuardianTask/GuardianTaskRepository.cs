@@ -1,6 +1,6 @@
 ﻿using Guardian.Application.Interfaces.IRepository.TaskGuardian;
 using Guardian.Domain.Models;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace Guardian.Data.Repository.GuardianTask
 {
@@ -13,7 +13,6 @@ namespace Guardian.Data.Repository.GuardianTask
         }
         public async Task<GuardianTaskModel> UpdateAsync(GuardianTaskModel entity)
         {
-            entity.UpdatedDate = DateTime.Now;
             _db.GuardianTasks.Update(entity);
             await _db.SaveChangesAsync();
             return entity;
@@ -21,9 +20,8 @@ namespace Guardian.Data.Repository.GuardianTask
 
         public async Task<GuardianTaskModel> UpdateInactivateAsync(GuardianTaskModel entity)
         {
-            entity.UpdatedDate = DateTime.Now;
-            entity.Status = false;
-            _db.GuardianTasks.Update(entity);
+            entity.Inativar(entity);
+            _db.GuardianTasks.Update(entity);            
             await _db.SaveChangesAsync();
             return entity;
         }

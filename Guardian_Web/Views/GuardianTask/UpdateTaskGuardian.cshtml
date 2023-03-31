@@ -1,5 +1,69 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@model Guardian_Web.Models.ViewModel.GuardianTaskUpdateVM
+
+<form asp-action="UpdateTaskGuardian">
+    <br />
+    <div class="container border p-3">
+        <h1 class="text-primary">Edit task</h1>
+        <hr />
+
+        <input hidden asp-for="@Model.GuardianTask.Id" />
+        <div class="row">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size: 20px;">Title</label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="GuardianTask.TaksName" class="form-control" />
+                <span asp-validation-for="GuardianTask.TaksName" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label class="control-label pt-2" style="font-size: 20px;">Responsible</label>
+            </div>
+            <div class="col-10 pb-3">
+                <select asp-for="GuardianTask.IdResponsible" class="form-select" asp-items="@Model.GuardianList">
+                    <option disabled selected>--Select employe--</option>
+                </select>
+                <span asp-validation-for="GuardianTask.IdResponsible" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label asp-for="GuardianTask.Description" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <textarea asp-for="GuardianTask.Description" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="GuardianTask.Description" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label asp-for="GuardianTask.Category" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="GuardianTask.Category" class="form-control" rows="5"></input>
+                <span asp-validation-for="GuardianTask.Category" class="text-danger"></span>
+            </div>
+
+            <div cclass="col-2">
+                <label asp-for="GuardianTask.Priority" class="control-label pt-2" style="font-size: 20px;"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input asp-for="GuardianTask.Priority" class="form-control" rows="5"></input>
+                <span asp-validation-for="GuardianTask.Priority" class="text-danger"></span>
+            </div>
+
+
+            <div class="col-5 offset-2">
+                <a asp-controller="GuardianTask" asp-action="IndexGuardianTask" class="btn-primary btn form-control">Back to list</a>
+            </div>
+
+            <div class="col-5">
+                <input type="submit" value="update" class="btn btn-success form-control" />
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
 }

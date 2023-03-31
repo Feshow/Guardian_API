@@ -35,7 +35,7 @@ namespace Guardian_API.Controllers
         {
             try
             {
-                IEnumerable<GuardianTaskModel> taskList = await _dbTask.GetAllAsync(includeProperties: "GuardianModel"); //includeProperties should match with ctor include in repository
+                IEnumerable<GuardianTaskModel> taskList = await _dbTask.GetAllAsync(x => x.Status == true, includeProperties: "GuardianModel"); //includeProperties should match with ctor include in repository
                 _response.Result = _mapper.Map<List<GuardianTaskDTO>>(taskList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
@@ -63,7 +63,7 @@ namespace Guardian_API.Controllers
                     return BadRequest(_response);
                 }
 
-                var response = await _dbTask.GetAsync(x => x.Id == id, includeProperties: "GuardianModel");
+                var response = await _dbTask.GetAsync(x => x.Id == id && x.Status == true, includeProperties: "GuardianModel");
 
                 if (response == null)
                 {
@@ -72,7 +72,7 @@ namespace Guardian_API.Controllers
                     return NotFound(_response);
                 }
 
-                _response.Result = _mapper.Map<GuardianCreateTaskDTO>(response);
+                _response.Result = _mapper.Map<GuardianTaskDTO>(response);
                 _response.StatusCode = HttpStatusCode.OK;
                 return (_response);
             }
@@ -128,6 +128,8 @@ namespace Guardian_API.Controllers
         }
 
         [HttpDelete("{id:int}", Name = "Delete task")]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> DeleteTask(int id)
         {
             try
@@ -140,14 +142,12 @@ namespace Guardian_API.Controllers
                 }
 
                 var task = await _dbTask.GetAsync(x => x.Id == id);
-
                 if (task == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
                     return NotFound();
                 }
-
                 await _dbTask.UpdateInactivateAsync(task);
                 _response.StatusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
@@ -176,24 +176,28 @@ namespace Guardian_API.Controllers
 
                 if (await _dbGuardian.GetAsync(x => x.Id == updateTaskDTO.IdResponsible) == null)
                 {
-                    ModelState.AddModelError("ErrorMessages", "IdResponsible is invalid!");
+                    ModelState.AddModelError("ErrorMessages", "Responsible is invalid!");
                     return BadRequest(ModelState);
                 }
 
-                var task = await _dbTask.GetAsync(x => x.Id == id, tracked: false);
+                var task = await _dbTask.GetAsync(x => x.Id == id, tracked: true);
                 if (task == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
                     return NotFound();
                 }
-
-
-                GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(updateTaskDTO);                
-                //Check if it is the best way to set the CreatedDate
-                model.CreatedDate = task.CreatedDate;
-
-                await _dbTask.UpdateAsync(model);
+                else
+                {
+                    task.TaksName = updateTaskDTO.TaksName;
+                    task.Description = updateTaskDTO.Description;
+                    task.Category = updateTaskDTO.Category;
+                    task.Priority= updateTaskDTO.Priority;
+                    task.IdResponsible = updateTaskDTO.IdResponsible;
+                    task.UpdatedDate= updateTaskDTO.UpdatedDate;
+                }
+               
+                await _dbTask.UpdateAsync(task);
                 _response.StatusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
                 return Ok(_response);

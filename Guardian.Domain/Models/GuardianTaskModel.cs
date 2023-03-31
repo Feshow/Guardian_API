@@ -19,5 +19,12 @@ namespace Guardian.Domain.Models
         public bool Status { get; set; } = true;
         public DateTime CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
+
+
+        public void Inativar(GuardianTaskModel model)
+        {
+            model.Status = false;
+            model.UpdatedDate = DateTime.Now;
+        }
     }
 }

@@ -18,7 +18,7 @@ namespace Guardian_Web.Controllers
         private readonly IGuardianService _guardianService;
         private readonly IMapper _mapper;
 
-        public GuardianTaskController(IGuardianTaskService guardianTaskService, IGuardianService guardianService ,IMapper mapper)
+        public GuardianTaskController(IGuardianTaskService guardianTaskService, IGuardianService guardianService, IMapper mapper)
         {
             _guardianTaskService = guardianTaskService;
             _guardianService = guardianService;
@@ -60,7 +60,7 @@ namespace Guardian_Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTaskGuardian(GuardianTaskCreateVM model)
-            {
+        {
             if (ModelState.IsValid)
             {
                 var response = await _guardianTaskService.CreateAsync<APIResponse>(model.Guardian);
@@ -95,65 +95,102 @@ namespace Guardian_Web.Controllers
             return View(model);
         }
 
-        //public async Task<IActionResult> UpdateTaskGuardian(int guardianId)
-        //{
-        //    var response = await _guardianTaskService.GetAsync<APIResponse>(guardianId);
-        //    if (response != null && response.IsSuccess)
-        //    {
-        //        GuardianTaskDTO model = JsonConvert.DeserializeObject<GuardianTaskDTO>(Convert.ToString(response.Result));
-        //        return View(_mapper.Map<GuardianUpdateTaskDTO>(model));
-        //    }
-        //    return NotFound();
-        //}
+        public async Task<IActionResult> UpdateTaskGuardian(int guardianTaskId)
+        {
+            GuardianTaskUpdateVM guardianTaskVM = new();
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> UpdateTaskGuardian(GuardianUpdateTaskDTO model)
-        //{
-        //    var getGuardian = await _guardianTaskService.GetAsync<APIResponse>(model.Id);
+            var response = await _guardianTaskService.GetAsync<APIResponse>(guardianTaskId);
+            if (response != null && response.IsSuccess)
+            {
+                GuardianTaskDTO model = JsonConvert.DeserializeObject<GuardianTaskDTO>(Convert.ToString(response.Result));
+                guardianTaskVM.GuardianTask = _mapper.Map<GuardianUpdateTaskDTO>(model);
+            }
 
-        //    if (getGuardian != null && getGuardian.IsSuccess)
-        //    {
-        //        GuardianTaskDTO guardian = JsonConvert.DeserializeObject<GuardianTaskDTO>(Convert.ToString(getGuardian.Result));
-        //        model.UpdatedDate = DateTime.Now;
-        //    }
+            response = await _guardianService.GetAllAsync<APIResponse>();
+            if (response != null && response.IsSuccess)
+            {
+                //Populate  the dropdown
+                guardianTaskVM.GuardianList = JsonConvert.DeserializeObject<List<GuardianDTO>>
+                    (Convert.ToString(response.Result)).Select(i => new SelectListItem
+                    {
+                        Text = i.Name,
+                        Value = i.Id.ToString()
+                    });
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        var response = await _guardianTaskService.UpdadeAsync<APIResponse>(model);
+                return View(guardianTaskVM);
+            }
 
-        //        if (response != null && response.IsSuccess)
-        //        {
-        //            //Redirect back to the index action method that willl reaload al the table informations
-        //            return RedirectToAction(nameof(IndexGuardianTask));
-        //        }
-        //    }
-        //    return View(model);
-        //}
+            return NotFound();
+        }
 
-        //public async Task<IActionResult> DeleteTaskGuardian(int guardianId)
-        //{
-        //    var response = await _guardianTaskService.GetAsync<APIResponse>(guardianId);
-        //    if (response != null && response.IsSuccess)
-        //    {
-        //        GuardianTaskDTO model = JsonConvert.DeserializeObject<GuardianTaskDTO>(Convert.ToString(response.Result));
-        //        return View(model);
-        //    }
-        //    return NotFound();
-        //}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateTaskGuardian(GuardianTaskUpdateVM model)
+        {
+            if (ModelState.IsValid)
+            {
+                var response = await _guardianTaskService.UpdadeAsync<APIResponse>(model.GuardianTask);
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteTaskGuardian(GuardianTaskDTO model)
-        //{
-        //    var response = await _guardianTaskService.DeleteAsync<APIResponse>(model.Id);
+                if (response != null && response.IsSuccess)
+                {
+                    //Redirect back to the index action method that willl reaload al the table informations
+                    return RedirectToAction(nameof(IndexGuardianTask));
+                }
+                else
+                {
+                    if (response.ErrorMessages.Count > 0)
+                    {
+                        ModelState.AddModelError("ErrorMessages", response.ErrorMessages.FirstOrDefault());
+                    }
+                }
+            }
 
-        //    if (response != null && response.IsSuccess)
-        //    {
-        //        return RedirectToAction(nameof(IndexGuardianTask));
-        //    }
+            //Populate the dropdaown again if the response is invalid
+            var res = await _guardianService.GetAllAsync<APIResponse>();
+            if (res != null && res.IsSuccess)
+            {
+                //Populate  the dropdown
+                model.GuardianList = JsonConvert.DeserializeObject<List<GuardianDTO>>
+                    (Convert.ToString(res.Result)).Select(i => new SelectListItem
+                    {
+                        Text = i.Name,
+                        Value = i.Id.ToString()
+                    });
+            }
 
-        //    return View(model);
-        //}
+            return View(model);
+        }
+
+        public async Task<IActionResult> DeleteTaskGuardian(int guardianTaskId)
+        {
+            var response = await _guardianTaskService.GetAsync<APIResponse>(guardianTaskId);
+            if (response != null && response.IsSuccess)
+            {
+                GuardianTaskDTO model = JsonConvert.DeserializeObject<GuardianTaskDTO>(Convert.ToString(response.Result));
+
+                if (model != null)
+                {
+                    if (response != null && response.IsSuccess)
+                    {
+                        return View(model);
+                    }
+                }
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteTaskGuardian(GuardianTaskDTO model)
+        {
+            var response = await _guardianTaskService.DeleteAsync<APIResponse>(model.Id);
+
+            if (response != null && response.IsSuccess)
+            {
+                return RedirectToAction(nameof(IndexGuardianTask));
+            }
+
+            return View(model);
+        }
     }
 }
