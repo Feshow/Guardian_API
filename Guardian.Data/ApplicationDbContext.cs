@@ -15,25 +15,9 @@ namespace Guardian.Data
         {
 
         }
+        public DbSet<LocalUser> LocalUser { get; set; }
         public DbSet<GuardianModel> Guardians { get; set; }
         public DbSet<GuardianTaskModel> GuardianTasks { get; set; }
-
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    modelBuilder.Entity<GuardianModel>().HasData(
-        //        new GuardianModel()
-        //        {
-        //            Id = 1,
-        //            Name = "Felippe Delesporte",
-        //            Age = 22,
-        //            Occupancy = "Software Developer",
-        //            Adress = "São Paulo",
-        //            CreatedDate = DateTime.Now,
-        //            Status = true,
-        //            UpdatedDate = null,
-        //            DeletedeDate = null
-        //        });
-        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

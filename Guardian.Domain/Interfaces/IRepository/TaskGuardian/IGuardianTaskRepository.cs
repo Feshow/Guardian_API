@@ -1,6 +1,6 @@
 ﻿using Guardian.Domain.Models;
 
-namespace Guardian.Application.Interfaces.IRepository.TaskGuardian
+namespace Guardian.Domain.Interfaces.IRepository.TaskGuardian
 {
     public interface IGuardianTaskRepository : IRepository<GuardianTaskModel>
     {

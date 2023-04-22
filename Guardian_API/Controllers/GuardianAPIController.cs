@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Guardian.Application.Interfaces.IRepository.Guardian;
+using Guardian.Domain.Interfaces.IRepository.Guardian;
 using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.Models;
 using Guardian.Domain.Models.API;

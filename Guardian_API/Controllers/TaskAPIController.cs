@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Guardian.Application.Interfaces.IRepository.Guardian;
-using Guardian.Application.Interfaces.IRepository.TaskGuardian;
+using Guardian.Domain.Interfaces.IRepository.Guardian;
+using Guardian.Domain.Interfaces.IRepository.TaskGuardian;
 using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.DTO.GuardianTask;
 using Guardian.Domain.Models;

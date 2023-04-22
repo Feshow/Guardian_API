@@ -1,6 +1,6 @@
 ﻿using Guardian.Domain.Models;
 
-namespace Guardian.Application.Interfaces.IRepository.Guardian
+namespace Guardian.Domain.Interfaces.IRepository.Guardian
 {
     public interface IGuardianRepository : IRepository<GuardianModel>
     {

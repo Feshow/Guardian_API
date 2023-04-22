@@ -1,9 +1,11 @@
-using Guardian.Application.Interfaces.IRepository.Guardian;
-using Guardian.Application.Interfaces.IRepository.TaskGuardian;
+using Guardian.Domain.Interfaces.IRepository.Guardian;
+using Guardian.Domain.Interfaces.IRepository.TaskGuardian;
 using Guardian.Data;
 using Guardian.Data.Repository.Guardian;
 using Guardian.Data.Repository.GuardianTask;
 using Microsoft.EntityFrameworkCore;
+using Guardian.Domain.Interfaces.IRepository.User;
+using Guardian.Data.Repository.User;
 
 #region Containers / Builder
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 });
 
 builder.Services.AddScoped<IGuardianRepository, GuardianRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IGuardianTaskRepository, GuardianTaskRepository>();
 
 builder.Services.AddAutoMapper(typeof(MappingConfig));

@@ -1,4 +1,4 @@
-﻿using Guardian.Application.Interfaces.IRepository.Guardian;
+﻿using Guardian.Domain.Interfaces.IRepository.Guardian;
 using Guardian.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;

@@ -1,7 +1,6 @@
-﻿using Guardian.Domain.Models;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
-namespace Guardian.Application.Interfaces.IRepository
+namespace Guardian.Domain.Interfaces.IRepository
 {
     public  interface IRepository<T> where T : class
     {
