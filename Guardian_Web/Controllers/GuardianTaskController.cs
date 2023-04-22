@@ -68,6 +68,7 @@ namespace Guardian_Web.Controllers
                 if (response != null && response.IsSuccess)
                 {
                     //Redirect back to the index action method that willl reaload al the table informations
+                    TempData["success"] = "Updated successfully";
                     return RedirectToAction(nameof(IndexGuardianTask));
                 }
                 else
@@ -91,7 +92,7 @@ namespace Guardian_Web.Controllers
                         Value = i.Id.ToString()
                     });
             }
-
+            TempData["error"] = "Error encounted.";
             return View(model);
         }
 
@@ -134,6 +135,7 @@ namespace Guardian_Web.Controllers
                 if (response != null && response.IsSuccess)
                 {
                     //Redirect back to the index action method that willl reaload al the table informations
+                    TempData["success"] = "Updated successfully";
                     return RedirectToAction(nameof(IndexGuardianTask));
                 }
                 else
@@ -143,6 +145,7 @@ namespace Guardian_Web.Controllers
                         ModelState.AddModelError("ErrorMessages", response.ErrorMessages.FirstOrDefault());
                     }
                 }
+
             }
 
             //Populate the dropdaown again if the response is invalid
@@ -157,7 +160,7 @@ namespace Guardian_Web.Controllers
                         Value = i.Id.ToString()
                     });
             }
-
+            TempData["error"] = "Error encounted.";
             return View(model);
         }
 
@@ -187,9 +190,10 @@ namespace Guardian_Web.Controllers
 
             if (response != null && response.IsSuccess)
             {
+                TempData["success"] = "Removed successfully";
                 return RedirectToAction(nameof(IndexGuardianTask));
             }
-
+            TempData["error"] = "Error encounted.";
             return View(model);
         }
     }

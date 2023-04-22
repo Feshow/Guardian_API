@@ -168,20 +168,19 @@ namespace Guardian_API.Controllers
                     return BadRequest(_response);
                 }
 
-                var guardian = await _dbGuardian.GetAsync(x => x.Id == id, tracked: false);
+                var guardian = await _dbGuardian.GetAsync(x => x.Id == id, tracked: true);
                 if (guardian == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
                     return NotFound();
                 }
+                else
+                {
+                    guardian.UpdateGuardian(updateDTO);
+                }
 
-
-                GuardianModel model = _mapper.Map<GuardianModel>(updateDTO);
-                //Check if it is the best way to set the CreatedDate
-                model.CreatedDate = guardian.CreatedDate;
-
-                await _dbGuardian.UpdateAsync(model);
+                await _dbGuardian.UpdateAsync(guardian);
                 _response.StatusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
                 return Ok(_response);

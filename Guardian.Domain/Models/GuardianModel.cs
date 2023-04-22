@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Guardian.Domain.DTO.Guardian;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Guardian.Domain.Models
@@ -16,5 +17,13 @@ namespace Guardian.Domain.Models
         public DateTime? UpdatedDate { get; set; }
         public DateTime? DeletedeDate { get; set; }
         public bool Status { get; set; }
+
+        public void UpdateGuardian(GuardianUpdateDTO updateDTO)
+        {
+            Name = updateDTO.Name;
+            Age = updateDTO.Age;
+            Adress = updateDTO.Adress;
+            Occupancy = updateDTO.Occupancy;
+        }
     }
 }

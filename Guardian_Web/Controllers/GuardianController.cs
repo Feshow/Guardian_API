@@ -50,9 +50,11 @@ namespace Guardian_Web.Controllers
                 if (response != null && response.IsSuccess)
                 {
                     //Redirect back to the index action method that willl reaload al the table informations
+                    TempData["success"] = "Registred successfully"; //Sweet alert
                     return RedirectToAction(nameof(IndexGuardian));
                 }
             }
+            TempData["error"] = "Error encounted.";
             return View(model);
         }
 
@@ -87,9 +89,11 @@ namespace Guardian_Web.Controllers
                 if (response != null && response.IsSuccess)
                 {
                     //Redirect back to the index action method that willl reaload al the table informations
+                    TempData["success"] = "Updated successfully"; //Sweet alert
                     return RedirectToAction(nameof(IndexGuardian));
                 }
             }
+            TempData["error"] = "Error encounted.";
             return View(model);
         }
 
@@ -112,9 +116,10 @@ namespace Guardian_Web.Controllers
 
             if (response != null && response.IsSuccess)
             {
+                TempData["success"] = "Removed successfully";
                 return RedirectToAction(nameof(IndexGuardian));
             }
-
+            TempData["error"] = "Error encounted.";
             return View(model);
         }
     }

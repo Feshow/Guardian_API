@@ -22,8 +22,6 @@ namespace Guardian.Domain.DTO.Guardian
         [Required]
         public string Adress { get; set; }
         [Required]
-        public DateTime? CreatedDate { get; set; }
-        [Required]
         public DateTime? UpdatedDate { get; set; }
         public bool Status { get; set; }
     }
