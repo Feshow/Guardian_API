@@ -6,6 +6,7 @@ using Guardian.Domain.Models.API;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Guardian_API.Controllers
 {
@@ -27,7 +28,12 @@ namespace Guardian_API.Controllers
         }
 
         [HttpGet]
+        [Authorize]//Only with authorization
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> GetAll()
         {
             try
@@ -46,7 +52,10 @@ namespace Guardian_API.Controllers
         }
 
         [HttpGet("{id:int}", Name = "Get by Id")]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> GetById(int id)
@@ -82,7 +91,10 @@ namespace Guardian_API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> Create([FromBody] GuardianCreateDTO createDTO)
@@ -118,7 +130,14 @@ namespace Guardian_API.Controllers
             return _response;
         }
 
+
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpDelete("{id:int}", Name = "Delete")]
+        [Authorize(Roles = "CUSTOM")]//Only with authorization
         //Delete does not return any data, so it not necessary to give a return in IActionResult
         public async Task<ActionResult<APIResponse>> Delete(int id)
         {

@@ -36,7 +36,7 @@ namespace Guardian_API.Controllers
             _response.IsSuccess = true;
             _response.Result = loginResponse;
 
-            return View(loginResponse);
+            return Ok(_response);
         }
 
         [HttpPost("register")]
@@ -64,7 +64,7 @@ namespace Guardian_API.Controllers
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
 
-            return View();
+            return Ok(_response);
         }
     }
 }

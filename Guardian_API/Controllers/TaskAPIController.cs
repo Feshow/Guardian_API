@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using Guardian.Domain.Interfaces.IRepository.Guardian;
 using Guardian.Domain.Interfaces.IRepository.TaskGuardian;
-using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.DTO.GuardianTask;
 using Guardian.Domain.Models;
 using Guardian.Domain.Models.API;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace Guardian_API.Controllers
 {
