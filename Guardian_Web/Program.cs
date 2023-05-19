@@ -15,6 +15,9 @@ builder.Services.AddScoped<IGuardianService, GuardianService>(); //Registering G
 builder.Services.AddHttpClient<IGuardianTaskService, GuardianTaskService>();
 builder.Services.AddScoped<IGuardianTaskService, GuardianTaskService>();
 
+builder.Services.AddHttpClient<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
