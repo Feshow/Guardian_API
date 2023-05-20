@@ -15,8 +15,18 @@ builder.Services.AddScoped<IGuardianService, GuardianService>(); //Registering G
 builder.Services.AddHttpClient<IGuardianTaskService, GuardianTaskService>();
 builder.Services.AddScoped<IGuardianTaskService, GuardianTaskService>();
 
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>(); //To access http informetion in _Layout.cshtml
+
 builder.Services.AddHttpClient<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+//Momory cache
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout= TimeSpan.FromMinutes(10);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -34,6 +44,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
