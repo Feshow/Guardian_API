@@ -5,10 +5,11 @@ using Guardian.Domain.Models.API;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
-namespace Guardian_API.Controllers
+namespace Guardian_API.Controllers.Neutral
 {
-    [Route("api/UsersAuth")]
+    [Route("api/v{version:apiVersion}/UsersAuth")]
     [ApiController]
+    [ApiVersionNeutral]//It means that it will be there no matter what the version is
     public class UserController : Controller
     {
         protected APIResponse _response;
@@ -17,7 +18,7 @@ namespace Guardian_API.Controllers
         public UserController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            this._response = new();
+            _response = new();
         }
 
         [HttpPost("login")]
@@ -27,9 +28,9 @@ namespace Guardian_API.Controllers
             if (loginResponse.User == null || string.IsNullOrEmpty(loginResponse.Token))
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.IsSuccess= false;
+                _response.IsSuccess = false;
                 _response.ErrorMessages.Add("Username or passaword is incorrect");
-                return BadRequest(_response);                
+                return BadRequest(_response);
             }
 
             _response.StatusCode = HttpStatusCode.OK;

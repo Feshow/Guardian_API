@@ -1,42 +1,45 @@
 ﻿using AutoMapper;
 using Guardian.Domain.Interfaces.IRepository.Guardian;
-using Guardian.Domain.Interfaces.IRepository.TaskGuardian;
-using Guardian.Domain.DTO.GuardianTask;
+using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.Models;
 using Guardian.Domain.Models.API;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
-using System.Data;
 
-namespace Guardian_API.Controllers
+namespace Guardian_API.Controllers.v1
 {
-    [Route("api/TaskAPI")]
+    //If I change the controller name, the route does not change. It is safer in cases that we have many clients using the API.
+    [Route("api/v{version:apiVersion}/GuardianAPI")]
     [ApiController]
-    public class TaskAPIController : ControllerBase
+    [ApiVersion("1.0")] //It is the API avaliable version 
+    public class GuardianAPIController : ControllerBase
     {
         protected APIResponse _response;
-        private readonly IGuardianTaskRepository _dbTask;
         private readonly IGuardianRepository _dbGuardian;
         private readonly IMapper _mapper;
 
-        public TaskAPIController(IGuardianTaskRepository dbTask, IMapper mapper, IGuardianRepository guardianRepository)
+        //Appling Dependency Injection
+        public GuardianAPIController(IGuardianRepository dbGuardian, IMapper mapper)
         {
-            _dbTask = dbTask;
+            _dbGuardian = dbGuardian;
             _mapper = mapper;
-            this._response = new();
-            _dbGuardian = guardianRepository;
+            _response = new();
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> GetAllTasks()
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<APIResponse>> GetAll()
         {
             try
             {
-                IEnumerable<GuardianTaskModel> taskList = await _dbTask.GetAllAsync(x => x.Status == true, includeProperties: "GuardianModel"); //includeProperties should match with ctor include in repository
-                _response.Result = _mapper.Map<List<GuardianTaskDTO>>(taskList);
+                IEnumerable<GuardianModel> guardianList = await _dbGuardian.GetAllAsync();
+                _response.Result = _mapper.Map<List<GuardianDTO>>(guardianList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
             }
@@ -48,11 +51,13 @@ namespace Guardian_API.Controllers
             return _response;
         }
 
-        [HttpGet("{id:int}", Name = "Get task by Id")]
+        [HttpGet("{id:int}", Name = "Get by Id")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse>> GetTaskById(int id)
+        public async Task<ActionResult<APIResponse>> GetById(int id)
         {
             try
             {
@@ -63,18 +68,18 @@ namespace Guardian_API.Controllers
                     return BadRequest(_response);
                 }
 
-                var response = await _dbTask.GetAsync(x => x.Id == id && x.Status == true, includeProperties: "GuardianModel");
+                var response = await _dbGuardian.GetAsync(x => x.Id == id);
 
                 if (response == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
-                    return NotFound(_response);
+                    return NotFound();
                 }
 
-                _response.Result = _mapper.Map<GuardianTaskDTO>(response);
+                _response.Result = _mapper.Map<GuardianDTO>(response);
                 _response.StatusCode = HttpStatusCode.OK;
-                return (_response);
+                return Ok(_response);
             }
             catch (Exception ex)
             {
@@ -87,52 +92,53 @@ namespace Guardian_API.Controllers
         [HttpPost]
         [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse>> CreateTask([FromBody] GuardianCreateTaskDTO createTaskDTO)
+        public async Task<ActionResult<APIResponse>> Create([FromBody] GuardianCreateDTO createDTO)
         {
             try
             {
-                if (createTaskDTO == null)
+                if (await _dbGuardian.GetAsync(x => x.Name.ToLower() == createDTO.Name.ToLower()) != null)
+                {
+                    ModelState.AddModelError("ErrorMessages", "This name already exists!");
+                    return BadRequest(ModelState);
+                }
+
+                if (createDTO == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
-                    return NotFound(_response);
+                    return NotFound();
                 }
 
-                if (!createTaskDTO.IsValid(createTaskDTO))
-                {
-                    ModelState.AddModelError("ErrorMessages", "Task should have title, description and responsible!");
-                    return BadRequest(ModelState);
-                }
+                GuardianModel model = _mapper.Map<GuardianModel>(createDTO);
 
-                if (await _dbGuardian.GetAsync(x => x.Id == createTaskDTO.IdResponsible) == null)
-                {
-                    ModelState.AddModelError("ErrorMessages", "Responsible does not exist!");
-                    return BadRequest(ModelState);
-                }
+                await _dbGuardian.CreateAsync(model);
 
-                GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(createTaskDTO);
-
-                await _dbTask.CreateAsync(model);
-
-                _response.Result = _mapper.Map<GuardianTaskDTO>(model);
+                _response.Result = _mapper.Map<GuardianDTO>(model);
                 _response.StatusCode = HttpStatusCode.Created;
-                return CreatedAtRoute("Get task by Id", new { id = model.Id }, _response); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
+                return CreatedAtRoute("Get by Id", new { id = model.Id }, _response); //After create the object, it gerates the route where we can acesss the objet by id (Invoke GetById);
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
-                _response.ErrorMessages = new List<string>() { ex.ToString() };                
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
             }
-            return (_response);
+            return _response;
         }
 
-        [HttpDelete("{id:int}", Name = "Delete task")]
-        [Authorize(Roles = "admin")]//Only with authorization
-        [ProducesResponseType(StatusCodes.Status202Accepted)]
+
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> DeleteTask(int id)
+        [HttpDelete("{id:int}", Name = "Delete")]
+        [Authorize(Roles = "admin")]//Only with authorization
+        //Delete does not return any data, so it not necessary to give a return in IActionResult
+        public async Task<ActionResult<APIResponse>> Delete(int id)
         {
             try
             {
@@ -143,16 +149,19 @@ namespace Guardian_API.Controllers
                     return BadRequest(_response);
                 }
 
-                var task = await _dbTask.GetAsync(x => x.Id == id);
-                if (task == null)
+                var guardian = await _dbGuardian.GetAsync(x => x.Id == id);
+
+                if (guardian == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
                     return NotFound();
                 }
-                await _dbTask.UpdateInactivateAsync(task);
+
+                await _dbGuardian.RemoveAsync(guardian);
                 _response.StatusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
+                return Ok(_response);
             }
             catch (Exception ex)
             {
@@ -162,29 +171,24 @@ namespace Guardian_API.Controllers
             return _response;
         }
 
-        [HttpPut("{id:int}", Name = "Update task")]
+        //Used to update the complete object
+        [HttpPut("{id:int}", Name = "Update")]
         [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> UpdateTask(int id, [FromBody] GuardianUpdateTaskDTO updateTaskDTO)
+        public async Task<ActionResult<APIResponse>> Update(int id, [FromBody] GuardianUpdateDTO updateDTO)
         {
             try
             {
-                if (updateTaskDTO == null || id != updateTaskDTO.Id)
+                if (updateDTO == null || id != updateDTO.Id)
                 {
                     _response.StatusCode = HttpStatusCode.BadGateway;
                     _response.IsSuccess = false;
                     return BadRequest(_response);
                 }
 
-                if (await _dbGuardian.GetAsync(x => x.Id == updateTaskDTO.IdResponsible) == null)
-                {
-                    ModelState.AddModelError("ErrorMessages", "Responsible is invalid!");
-                    return BadRequest(ModelState);
-                }
-
-                var task = await _dbTask.GetAsync(x => x.Id == id, tracked: true);
-                if (task == null)
+                var guardian = await _dbGuardian.GetAsync(x => x.Id == id, tracked: true);
+                if (guardian == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
@@ -192,15 +196,10 @@ namespace Guardian_API.Controllers
                 }
                 else
                 {
-                    task.TaksName = updateTaskDTO.TaksName;
-                    task.Description = updateTaskDTO.Description;
-                    task.Category = updateTaskDTO.Category;
-                    task.Priority= updateTaskDTO.Priority;
-                    task.IdResponsible = updateTaskDTO.IdResponsible;
-                    task.UpdatedDate= updateTaskDTO.UpdatedDate;
+                    guardian.UpdateGuardian(updateDTO);
                 }
-               
-                await _dbTask.UpdateAsync(task);
+
+                await _dbGuardian.UpdateAsync(guardian);
                 _response.StatusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
                 return Ok(_response);
@@ -213,52 +212,50 @@ namespace Guardian_API.Controllers
             return _response;
         }
 
-        [HttpPatch("{id:int}", Name = "UpdateTaskProperty")]
+        //Used to update only one specific property
+        [HttpPatch("{id:int}", Name = "UpdateProperty")]
         [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> UpdatePatchTask(int id, JsonPatchDocument<GuardianUpdateTaskDTO> patchTaskDTO)
+        public async Task<ActionResult<APIResponse>> UpdatePatch(int id, JsonPatchDocument<GuardianUpdateDTO> patchDTO)
         {
             try
             {
-                if (patchTaskDTO == null || id == 0)
-                {
-                    _response.StatusCode = HttpStatusCode.BadGateway;
-                    _response.IsSuccess = false;
-                    return BadRequest(ModelState);
-                }
-
-                var objectTask = await _dbTask.GetAsync(x => x.Id == id, tracked: false);
-
-                if (objectTask == null)
+                if (patchDTO == null || id == 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadGateway;
                     _response.IsSuccess = false;
                     return BadRequest(_response);
                 }
 
-                GuardianUpdateTaskDTO taskDTO = _mapper.Map<GuardianUpdateTaskDTO>(objectTask);
-
-                patchTaskDTO.ApplyTo(taskDTO, ModelState);
-
-                if (await _dbGuardian.GetAsync(x => x.Id == taskDTO.IdResponsible) == null)
+                //AsNoTracking tell entity framework core that when you retrive this record, you do not want to track that (Avoid ID problem - will not track the record)
+                //Every time you are retriving one record EF is alwais tracking that
+                var objectGuardian = await _dbGuardian.GetAsync(x => x.Id == id, tracked: false);
+                if (objectGuardian == null)
                 {
-                    ModelState.AddModelError("CustomError", "IdResponsible is invalid!");
-                    return BadRequest(ModelState);
+                    _response.StatusCode = HttpStatusCode.BadGateway;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
                 }
+
+                //It is necessary to convert the model to DTO when we are changing some specific property
+                GuardianUpdateDTO guardianDTO = _mapper.Map<GuardianUpdateDTO>(objectGuardian);
+
+                //Patch makes possible to specify the property that we would like to update
+                patchDTO.ApplyTo(guardianDTO, ModelState);
+
+                //It is necessary to convert GuardianDTO to model before update de changes
+                GuardianModel model = _mapper.Map<GuardianModel>(guardianDTO);
+
+                //.Updata still updating the whole entity, so if you need to update only one proporty it is necessary go into some store prog and create a store prog to update onw record.
+                await _dbGuardian.UpdateAsync(model);
 
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                GuardianTaskModel model = _mapper.Map<GuardianTaskModel>(taskDTO);
-                model.CreatedDate = objectTask.CreatedDate;
-
-                await _dbTask.UpdateAsync(model);
-
                 _response.StatusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
                 return Ok(_response);
-
             }
             catch (Exception ex)
             {
@@ -266,6 +263,7 @@ namespace Guardian_API.Controllers
                 _response.ErrorMessages = new List<string>() { ex.ToString() };
             }
             return _response;
+
         }
     }
 }

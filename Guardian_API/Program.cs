@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
 
 #region Containers / Builder
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,21 @@ builder.Services.AddScoped<IGuardianRepository, GuardianRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IGuardianTaskRepository, GuardianTaskRepository>();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
+
+//Adding versioning for API
+builder.Services.AddApiVersioning(options => 
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions= true; //Response header will show the supported API versions (Swagger documentation)
+});
+
+//When we have differents endpoint versions it is necessary to specify which one we want to use (Check for [MapToApiVersion("")] on controler) 
+builder.Services.AddVersionedApiExplorer(options => 
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true; //The version is auto chosed in url
+});
 
 var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
 //Config Authentication for API
@@ -85,6 +101,42 @@ builder.Services.AddSwaggerGen(options =>
             new List<string>()
         }
     });
+    //Adding differents versions on documentation
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1.0",
+        Title = "Guardian",
+        Description = "Guardian API to manage tasks",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact = new OpenApiContact
+        {
+            Name = "Felippe Delesporte",
+            Url = new Uri("https://www.linkedin.com/in/felippe-delesporte/")
+        },
+        License= new OpenApiLicense
+        {
+            Name = "Example License",
+            Url = new Uri("https://example.com/license")
+        }
+    });
+    options.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Version = "v2.0",
+        Title = "Guardian v2",
+        Description = "Guardian API to manage tasks",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact = new OpenApiContact
+        {
+            Name = "Felippe Delesporte",
+            Url = new Uri("https://www.linkedin.com/in/felippe-delesporte/")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "Example License",
+            Url = new Uri("https://example.com/license")
+        }
+    });
+
 });
 
 var app = builder.Build();
@@ -95,7 +147,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        //Adding differents versions on documentation
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Guadian_v1");
+        options.SwaggerEndpoint("/swagger/v2/swagger.json", "Guadian_v2");
+    });
 }
 #endregion
 

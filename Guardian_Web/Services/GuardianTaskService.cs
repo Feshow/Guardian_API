@@ -2,6 +2,7 @@
 using Guardian_Web.Models.API;
 using Guardian_Web.Models.DTO.GuardianTask;
 using Guardian_Web.Services.IServices;
+using System;
 
 namespace Guardian_Web.Services
 {
@@ -9,11 +10,13 @@ namespace Guardian_Web.Services
     {
         private readonly IHttpClientFactory _clientFactory;
         private string apiUrl;
+        private string version;
 
         public GuardianTaskService(IHttpClientFactory clientFactory, IConfiguration configuration) : base(clientFactory)
         {
             _clientFactory = clientFactory;
             apiUrl = configuration.GetValue<string>("ServicesUrls:GuardianAPI");
+            version = "v1";
         }
 
         public Task<T> CreateAsync<T>(GuardianCreateTaskDTO dto, string token)
@@ -22,7 +25,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = dto,
-                Url = apiUrl + "/api/TaskAPI",
+                Url = apiUrl + $"/api/{version}/TaskAPI",
                 Token = token
             });
         }
@@ -32,7 +35,7 @@ namespace Guardian_Web.Services
             return SendAsync<T>(new APIResquest()
             {
                 ApiType = SD.ApiType.DELETE,
-                Url = apiUrl + "/api/TaskAPI/" + id,
+                Url = apiUrl + $"/api/{version}/TaskAPI/" + id,
                 Token = token
             });
         }
@@ -42,7 +45,7 @@ namespace Guardian_Web.Services
             return SendAsync<T>(new APIResquest()
             {
                 ApiType = SD.ApiType.GET,
-                Url = apiUrl + "/api/TaskAPI",
+                Url = apiUrl + $"/api/{version}/TaskAPI",
                 Token = token
             });
         }
@@ -52,7 +55,7 @@ namespace Guardian_Web.Services
             return SendAsync<T>(new APIResquest()
             {
                 ApiType = SD.ApiType.GET,
-                Url = apiUrl + "/api/TaskAPI/" + id,
+                Url = apiUrl + $"/api/{version}/TaskAPI/" + id,
                 Token = token
             });
         }
@@ -63,7 +66,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.PUT,
                 Data = dto,
-                Url = apiUrl + "/api/TaskAPI/" + dto.Id,
+                Url = apiUrl + $"/api/{version}/TaskAPI/" + dto.Id,
                 Token = token
             });
         }

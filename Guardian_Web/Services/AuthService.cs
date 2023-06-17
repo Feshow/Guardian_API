@@ -10,10 +10,12 @@ namespace Guardian_Web.Services
     {
         private readonly IHttpClientFactory _clientFactory;
         private string apiUrl;
+        private string version;
         public AuthService(IHttpClientFactory clientFactory, IConfiguration configuration) : base(clientFactory)
         {
             _clientFactory = clientFactory;
             apiUrl = configuration.GetValue<string>("ServicesUrls:GuardianAPI");
+            version = "v1";
         }
 
         public Task<T> LoginAsync<T>(LoginRequestDTO obj)
@@ -22,7 +24,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = obj,
-                Url = apiUrl + "/api/UsersAuth/login"
+                Url = apiUrl + $"/api/{version}/UsersAuth/login"
             });
         }
 
@@ -32,7 +34,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = obj,
-                Url = apiUrl + "/api/UsersAuth/register"
+                Url = apiUrl + $"/api/{version}/UsersAuth/register"
             });
         }
     }

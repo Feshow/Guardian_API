@@ -9,11 +9,13 @@ namespace Guardian_Web.Services
     {
         private readonly IHttpClientFactory _clientFactory;
         private string apiUrl;
+        private string version;
 
         public GuardianService(IHttpClientFactory clientFactory, IConfiguration configuration) : base(clientFactory)
         {
             _clientFactory = clientFactory;
             apiUrl = configuration.GetValue<string>("ServicesUrls:GuardianAPI");
+            version = "v1";
         }
 
         public Task<T> CreateAsync<T>(GuardianCreateDTO dto, string token)
@@ -22,7 +24,7 @@ namespace Guardian_Web.Services
             {
                 ApiType=SD.ApiType.POST,
                 Data=dto,
-                Url=apiUrl+ "/api/guardianAPI",
+                Url=apiUrl+ $"/api/{version}/guardianAPI",
                 Token = token
             });
         }
@@ -32,7 +34,7 @@ namespace Guardian_Web.Services
             return SendAsync<T>(new APIResquest()
             {
                 ApiType = SD.ApiType.DELETE,
-                Url = apiUrl + "/api/guardianAPI/" + id,
+                Url = apiUrl + $"/api/{version}/guardianAPI/" + id,
                 Token = token
             });
         }
@@ -42,7 +44,7 @@ namespace Guardian_Web.Services
             return SendAsync<T>(new APIResquest()
             {
                 ApiType = SD.ApiType.GET,
-                Url = apiUrl + "/api/guardianAPI",
+                Url = apiUrl + $"/api/{version}/guardianAPI",
                 Token = token
             });
         }
@@ -52,7 +54,7 @@ namespace Guardian_Web.Services
             return SendAsync<T>(new APIResquest()
             {
                 ApiType = SD.ApiType.GET,
-                Url = apiUrl + "/api/guardianAPI/" + id,
+                Url = apiUrl + $"/api/{version}/guardianAPI/" + id,
                 Token = token
             });
         }
@@ -63,7 +65,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.PUT,
                 Data = dto,
-                Url = apiUrl + "/api/guardianAPI/" + dto.Id,
+                Url = apiUrl + $"/api/{version}/guardianAPI/" + dto.Id,
                 Token = token
             });
         }

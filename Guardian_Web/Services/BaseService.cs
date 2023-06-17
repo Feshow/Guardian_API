@@ -66,7 +66,7 @@ namespace Guardian_Web.Services
                 try
                 {
                     APIResponse apiFinalResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent); //API will always retrive APIResponse, that is the reason it is not a type T (generic)
-                    if (apiFinalResponse.StatusCode == HttpStatusCode.BadRequest || apiFinalResponse.StatusCode == HttpStatusCode.NotFound)
+                    if (apiFinalResponse != null && apiFinalResponse.StatusCode == HttpStatusCode.BadRequest || apiFinalResponse.StatusCode == HttpStatusCode.NotFound)
                     {
                         apiFinalResponse.StatusCode = HttpStatusCode.BadRequest;
                         apiFinalResponse.IsSuccess = false;
