@@ -21,9 +21,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.1-Data", "4.1-Data", "{49
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guardian.Data", "Guardian.Data\Guardian.Data.csproj", "{0F0A2FBA-9469-4445-B0BB-0EF7C1401DC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guardian_Web", "Guardian_Web\Guardian_Web.csproj", "{EAB8837A-F7A7-4319-920E-A2BEDBF59B92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guardian_Web", "Guardian_Web\Guardian_Web.csproj", "{EAB8837A-F7A7-4319-920E-A2BEDBF59B92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guardian_Utility", "Guardian_Utility\Guardian_Utility.csproj", "{9542803A-118F-4F6F-8FA4-5CDF7DD2F552}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guardian_Utility", "Guardian_Utility\Guardian_Utility.csproj", "{9542803A-118F-4F6F-8FA4-5CDF7DD2F552}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{57D1F582-9A60-4828-8017-37B2C6059C7D}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

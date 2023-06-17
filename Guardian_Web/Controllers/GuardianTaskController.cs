@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
+using Guardian_Utility;
 using Guardian_Web.Models.API;
 using Guardian_Web.Models.DTO.Guardian;
 using Guardian_Web.Models.DTO.GuardianTask;
 using Guardian_Web.Models.ViewModel;
 using Guardian_Web.Services;
 using Guardian_Web.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Data;
 
 namespace Guardian_Web.Controllers
 {
@@ -29,7 +32,7 @@ namespace Guardian_Web.Controllers
         {
             List<GuardianTaskDTO> list = new();
 
-            var response = await _guardianTaskService.GetAllAsync<APIResponse>();
+            var response = await _guardianTaskService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
 
             if (response != null && response.IsSuccess)
             {
@@ -43,7 +46,7 @@ namespace Guardian_Web.Controllers
         {
             GuardianTaskCreateVM guardianTaskVM = new();
 
-            var response = await _guardianService.GetAllAsync<APIResponse>();
+            var response = await _guardianService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
             if (response != null && response.IsSuccess)
             {
                 //Populate  the dropdown
@@ -63,7 +66,7 @@ namespace Guardian_Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _guardianTaskService.CreateAsync<APIResponse>(model.Guardian);
+                var response = await _guardianTaskService.CreateAsync<APIResponse>(model.Guardian, HttpContext.Session.GetString(SD.SessionToken));
 
                 if (response != null && response.IsSuccess)
                 {
@@ -81,7 +84,7 @@ namespace Guardian_Web.Controllers
             }
 
             //Populate the dropdaown again if the response is invalid
-            var res = await _guardianService.GetAllAsync<APIResponse>();
+            var res = await _guardianService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
             if (res != null && res.IsSuccess)
             {
                 //Populate  the dropdown
@@ -100,14 +103,14 @@ namespace Guardian_Web.Controllers
         {
             GuardianTaskUpdateVM guardianTaskVM = new();
 
-            var response = await _guardianTaskService.GetAsync<APIResponse>(guardianTaskId);
+            var response = await _guardianTaskService.GetAsync<APIResponse>(guardianTaskId, HttpContext.Session.GetString(SD.SessionToken));
             if (response != null && response.IsSuccess)
             {
                 GuardianTaskDTO model = JsonConvert.DeserializeObject<GuardianTaskDTO>(Convert.ToString(response.Result));
                 guardianTaskVM.GuardianTask = _mapper.Map<GuardianUpdateTaskDTO>(model);
             }
 
-            response = await _guardianService.GetAllAsync<APIResponse>();
+            response = await _guardianService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
             if (response != null && response.IsSuccess)
             {
                 //Populate  the dropdown
@@ -130,7 +133,7 @@ namespace Guardian_Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _guardianTaskService.UpdadeAsync<APIResponse>(model.GuardianTask);
+                var response = await _guardianTaskService.UpdadeAsync<APIResponse>(model.GuardianTask, HttpContext.Session.GetString(SD.SessionToken));
 
                 if (response != null && response.IsSuccess)
                 {
@@ -149,7 +152,7 @@ namespace Guardian_Web.Controllers
             }
 
             //Populate the dropdaown again if the response is invalid
-            var res = await _guardianService.GetAllAsync<APIResponse>();
+            var res = await _guardianService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
             if (res != null && res.IsSuccess)
             {
                 //Populate  the dropdown
@@ -166,7 +169,7 @@ namespace Guardian_Web.Controllers
 
         public async Task<IActionResult> DeleteTaskGuardian(int guardianTaskId)
         {
-            var response = await _guardianTaskService.GetAsync<APIResponse>(guardianTaskId);
+            var response = await _guardianTaskService.GetAsync<APIResponse>(guardianTaskId, HttpContext.Session.GetString(SD.SessionToken));
             if (response != null && response.IsSuccess)
             {
                 GuardianTaskDTO model = JsonConvert.DeserializeObject<GuardianTaskDTO>(Convert.ToString(response.Result));
@@ -186,7 +189,7 @@ namespace Guardian_Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTaskGuardian(GuardianTaskDTO model)
         {
-            var response = await _guardianTaskService.DeleteAsync<APIResponse>(model.Id);
+            var response = await _guardianTaskService.DeleteAsync<APIResponse>(model.Id, HttpContext.Session.GetString(SD.SessionToken));
 
             if (response != null && response.IsSuccess)
             {

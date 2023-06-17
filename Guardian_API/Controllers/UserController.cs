@@ -7,7 +7,7 @@ using System.Net;
 
 namespace Guardian_API.Controllers
 {
-    [Route("api/UserAuth")]
+    [Route("api/UsersAuth")]
     [ApiController]
     public class UserController : Controller
     {

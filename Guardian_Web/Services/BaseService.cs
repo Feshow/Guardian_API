@@ -3,6 +3,7 @@ using Guardian_Web.Models.API;
 using Guardian_Web.Services.IServices;
 using Newtonsoft.Json;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Guardian_Web.Services
@@ -54,8 +55,12 @@ namespace Guardian_Web.Services
                         break;
                 }
 
-                HttpResponseMessage apiResponse = null;
-                apiResponse = await client.SendAsync(message); //Consuming API
+                if (!string.IsNullOrEmpty(apiResquest.Token)) //Passing token to API
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiResquest.Token);
+                }
+
+                HttpResponseMessage apiResponse = await client.SendAsync(message); //Consuming API
                 var apiContent = await apiResponse.Content.ReadAsStringAsync();
 
                 try

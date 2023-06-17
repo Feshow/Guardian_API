@@ -28,7 +28,6 @@ namespace Guardian_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]//Only with authorization
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -52,7 +51,6 @@ namespace Guardian_API.Controllers
         }
 
         [HttpGet("{id:int}", Name = "Get by Id")]
-        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -137,7 +135,7 @@ namespace Guardian_API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpDelete("{id:int}", Name = "Delete")]
-        [Authorize(Roles = "CUSTOM")]//Only with authorization
+        [Authorize(Roles = "admin")]//Only with authorization
         //Delete does not return any data, so it not necessary to give a return in IActionResult
         public async Task<ActionResult<APIResponse>> Delete(int id)
         {
@@ -174,6 +172,7 @@ namespace Guardian_API.Controllers
 
         //Used to update the complete object
         [HttpPut("{id:int}", Name = "Update")]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> Update(int id, [FromBody] GuardianUpdateDTO updateDTO)
@@ -214,6 +213,7 @@ namespace Guardian_API.Controllers
 
         //Used to update only one specific property
         [HttpPatch("{id:int}", Name = "UpdateProperty")]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdatePatch(int id, JsonPatchDocument<GuardianUpdateDTO> patchDTO)

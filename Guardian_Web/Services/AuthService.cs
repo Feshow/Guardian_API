@@ -9,11 +9,11 @@ namespace Guardian_Web.Services
     public class AuthService : BaseService, IAuthService
     {
         private readonly IHttpClientFactory _clientFactory;
-        private string url;
+        private string apiUrl;
         public AuthService(IHttpClientFactory clientFactory, IConfiguration configuration) : base(clientFactory)
         {
             _clientFactory = clientFactory;
-            url = configuration.GetValue<string>("ServiceUrls:GuardianAPI");
+            apiUrl = configuration.GetValue<string>("ServicesUrls:GuardianAPI");
         }
 
         public Task<T> LoginAsync<T>(LoginRequestDTO obj)
@@ -22,7 +22,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = obj,
-                Url = url + "/api/UserAuth/login"
+                Url = apiUrl + "/api/UsersAuth/login"
             });
         }
 
@@ -32,7 +32,7 @@ namespace Guardian_Web.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = obj,
-                Url = url + "/api/UserAuth/register"
+                Url = apiUrl + "/api/UsersAuth/register"
             });
         }
     }

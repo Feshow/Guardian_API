@@ -7,6 +7,8 @@ using Guardian.Domain.Models.API;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace Guardian_API.Controllers
 {
@@ -83,6 +85,7 @@ namespace Guardian_API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -126,6 +129,7 @@ namespace Guardian_API.Controllers
         }
 
         [HttpDelete("{id:int}", Name = "Delete task")]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> DeleteTask(int id)
@@ -159,6 +163,7 @@ namespace Guardian_API.Controllers
         }
 
         [HttpPut("{id:int}", Name = "Update task")]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateTask(int id, [FromBody] GuardianUpdateTaskDTO updateTaskDTO)
@@ -209,6 +214,7 @@ namespace Guardian_API.Controllers
         }
 
         [HttpPatch("{id:int}", Name = "UpdateTaskProperty")]
+        [Authorize(Roles = "admin")]//Only with authorization
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdatePatchTask(int id, JsonPatchDocument<GuardianUpdateTaskDTO> patchTaskDTO)

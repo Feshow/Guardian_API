@@ -1,6 +1,7 @@
 using Guardian_Web;
 using Guardian_Web.Services;
 using Guardian_Web.Services.IServices;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,15 +16,28 @@ builder.Services.AddScoped<IGuardianService, GuardianService>(); //Registering G
 builder.Services.AddHttpClient<IGuardianTaskService, GuardianTaskService>();
 builder.Services.AddScoped<IGuardianTaskService, GuardianTaskService>();
 
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>(); //To access http informetion in _Layout.cshtml
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>(); //To access http information in _Layout.cshtml
 
 builder.Services.AddHttpClient<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+
 //Momory cache
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.Cookie.HttpOnly= true;
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.LoginPath = "/Auth/Login";
+                    options.AccessDeniedPath = "/Auth/AcessDenied";
+                    options.SlidingExpiration = true;
+                });
+
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout= TimeSpan.FromMinutes(10);
+    options.IdleTimeout= TimeSpan.FromMinutes(100);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -43,6 +57,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSession();

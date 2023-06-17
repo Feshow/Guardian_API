@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Guardian_Utility;
 using Guardian_Web.Models;
 using Guardian_Web.Models.API;
 using Guardian_Web.Models.DTO.Guardian;
@@ -24,7 +25,7 @@ namespace Guardian_Web.Controllers
         {
             List<GuardianDTO> list = new();
 
-            var response = await _guardianService.GetAllAsync<APIResponse>();
+            var response = await _guardianService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
 
             if (response != null && response.IsSuccess)
             {
