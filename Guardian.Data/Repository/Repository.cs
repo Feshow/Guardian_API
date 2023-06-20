@@ -35,6 +35,7 @@ namespace Guardian.Data.Repository
             {
                 query = query.Where(filter);
             }
+
             if (includeProperties != null) //Responsible to select some specif properties that has FK relation in DataBase
             {
                 foreach (var includeProp in includeProperties.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries))//In case we have more than one property
@@ -46,7 +47,7 @@ namespace Guardian.Data.Repository
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, int pageSize = 3, int pageNumber = 1)
         {
             //It does not get execute right away
             IQueryable<T> query = dbSet;
@@ -54,6 +55,21 @@ namespace Guardian.Data.Repository
             {
                 query = query.Where(filter);
             }
+
+            if (pageSize > 0)
+            {
+                if (pageSize > 100)
+                {
+                    pageSize = 100;
+                }
+
+                //pageNumber = 2 AND size = 5
+                //skip.(5 * (2-1).Take(5)
+                //skip.(5*1).Take(5)                
+                //In this case we will skip 5 and take five record on the next page
+                query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);//Basic skip for pagination
+            }
+
             if (includeProperties != null) //Responsible to select some specif properties that has FK relation in DataBase
             {
                 foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))

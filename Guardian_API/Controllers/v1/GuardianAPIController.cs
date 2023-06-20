@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 
 namespace Guardian_API.Controllers.v1
 {
@@ -29,16 +30,36 @@ namespace Guardian_API.Controllers.v1
         }
 
         [HttpGet]
+        [ResponseCache(CacheProfileName = "Default30")] //Hold the informations in cache memory for 30secs
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)] 
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse>> GetAll()
+        public async Task<ActionResult<APIResponse>> GetAll([FromQuery(Name = "Filter Occupancy")] string? occupancy, [FromQuery] string? search, int pageSize = 2, int pageNumber = 1)//Makes the filter optional
         {
             try
             {
-                IEnumerable<GuardianModel> guardianList = await _dbGuardian.GetAllAsync();
+                IEnumerable<GuardianModel> guardianList;
+
+                if (!string.IsNullOrEmpty(occupancy))
+                {
+                    guardianList = await _dbGuardian.GetAllAsync(u => u.Occupancy == occupancy, pagaSize: pageSize, pageNumber: pageNumber);
+                }
+                else
+                {
+                    guardianList = await _dbGuardian.GetAllAsync(pagaSize: pageSize, pageNumber: pageNumber);
+
+                }
+
+                if (!string.IsNullOrEmpty(search))//Example of filter in controller and not in data base
+                {
+                    guardianList = guardianList.Where(u => u.Name.ToLower().Contains(search));
+                }
+                
+                Pagination pagination = new Pagination(pageSize, pageNumber);
+
+                Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(pagination));//Adding pagination info in header response
                 _response.Result = _mapper.Map<List<GuardianDTO>>(guardianList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
@@ -52,6 +73,7 @@ namespace Guardian_API.Controllers.v1
         }
 
         [HttpGet("{id:int}", Name = "Get by Id")]
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)] //Setting the end point to do not cache memory
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
