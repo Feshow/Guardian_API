@@ -11,7 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Identity;
+using Guardian.Domain.Models;
 
 #region Containers / Builder
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSqlConnection"));
 });
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>() //Default identity user (It is a identity library provided by .NET/ Add a few tables relatated to identity in database)
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddResponseCaching(); //Enable caching for API requests
 builder.Services.AddScoped<IGuardianRepository, GuardianRepository>();

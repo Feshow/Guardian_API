@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Guardian.Domain.DTO.Guardian;
 using Guardian.Domain.DTO.GuardianTask;
+using Guardian.Domain.DTO.LoginUser;
 using Guardian.Domain.Models;
 
 namespace Guardian.Data
@@ -16,6 +17,7 @@ namespace Guardian.Data
             CreateMap<GuardianTaskModel, GuardianTaskDTO>().ReverseMap();
             CreateMap<GuardianTaskModel, GuardianCreateTaskDTO>().ReverseMap();
             CreateMap<GuardianTaskModel, GuardianUpdateTaskDTO>().ReverseMap();
+            CreateMap<ApplicationUser, UserDTO>().ReverseMap();
         }
     }
 }

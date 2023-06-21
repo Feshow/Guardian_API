@@ -1,7 +1,9 @@
-﻿using Guardian.Domain.DTO.LoginUser;
+﻿using AutoMapper;
+using Guardian.Domain.DTO.LoginUser;
 using Guardian.Domain.DTO.LoginUser.Registration;
 using Guardian.Domain.Interfaces.IRepository.User;
 using Guardian.Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,15 +15,21 @@ namespace Guardian.Data.Repository.User
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _db;
+        private readonly UserManager<ApplicationUser> _userManager; //Provide helpers functions
+        private readonly RoleManager<IdentityRole> _roleManager; //Provide helpers functions
         private string secretKey;
-        public UserRepository(ApplicationDbContext db, IConfiguration configuration)
+        private readonly IMapper _mapper;
+        public UserRepository(ApplicationDbContext db, IConfiguration configuration, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
         {
             _db = db;
+            _userManager = userManager;
+            _roleManager = roleManager;
             secretKey = configuration.GetValue<string>("ApiSettings:Secret");
+            _mapper = mapper;
         }
         public bool IsUniqueUser(string username)
         {
-            var user = _db.LocalUser.FirstOrDefault(x => x.UserName.ToLower() == username.ToLower());
+            var user = _db.ApplicationUsers.FirstOrDefault(x => x.UserName.ToLower() == username.ToLower());
 
             if (user == null)
                 return true;
@@ -31,15 +39,17 @@ namespace Guardian.Data.Repository.User
 
         public async Task<LoginResponseDTO> Login(LoginRequestDTO loginRequest)
         {
-            var user = _db.LocalUser.FirstOrDefault(u => u.UserName.ToLower() == loginRequest.UserName.ToLower()
-                                                    && u.Password == loginRequest.Password);
-            if (user == null)
+            var user = _db.ApplicationUsers.FirstOrDefault(u => u.UserName.ToLower() == loginRequest.UserName.ToLower());
+
+            bool isValid = await _userManager.CheckPasswordAsync(user, loginRequest.Password);
+
+            if (user == null || isValid == false)
             {
                 LoginResponseDTO loginResponseDTO = new LoginResponseDTO(user: null, token: "");
             }
 
-
             //if the user was found it is necessary to generate the JWT Token
+            var roles = await _userManager.GetRolesAsync(user);
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secretKey); //That will convert the secret key which is in string to byte, then into byte array and finally the key variable
             
@@ -48,8 +58,8 @@ namespace Guardian.Data.Repository.User
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Id.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                    new Claim(ClaimTypes.Role, roles.FirstOrDefault()),
 
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
@@ -58,19 +68,41 @@ namespace Guardian.Data.Repository.User
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var stringToken = tokenHandler.WriteToken(token);
-            LoginResponseDTO loginResponse = new LoginResponseDTO(user, stringToken);
+            LoginResponseDTO loginResponse = new LoginResponseDTO(_mapper.Map<UserDTO>(user), stringToken);
 
             return loginResponse;
         }
 
-        public async Task<LocalUser> Register(RegistrationResquestDTO registrationResquest)
+        public async Task<UserDTO> Register(RegistrationResquestDTO registrationResquest)
         {
-            LocalUser user = new LocalUser(registrationResquest.UserName, registrationResquest.Name, registrationResquest.Password, registrationResquest.Role);
-            _db.LocalUser.Add(user);
-            await _db.SaveChangesAsync();
+            ApplicationUser user = new()
+            {
+                UserName = registrationResquest.UserName,
+                Email = registrationResquest.UserName,
+                NormalizedEmail = registrationResquest.UserName.ToUpper(),
+                Name = registrationResquest.Name,
+            };
 
-            user.Password = "";
-            return user;
+            try
+            {
+                var result = await _userManager.CreateAsync(user, registrationResquest.Password);
+                if (result.Succeeded)
+                {
+                    if (!_roleManager.RoleExistsAsync(registrationResquest.Role).GetAwaiter().GetResult())
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(registrationResquest.Role));
+                    }
+                    await _userManager.AddToRoleAsync(user, "admin");
+                    var userToReturn = _db.ApplicationUsers.FirstOrDefault(u => u.UserName == registrationResquest.UserName);
+                  
+                    return _mapper.Map<UserDTO>(user);
+                }
+            }
+            catch (Exception e)
+            {
+            }
+
+            return null;
         }
     }
 }

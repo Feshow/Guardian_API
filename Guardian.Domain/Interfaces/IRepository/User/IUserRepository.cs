@@ -8,6 +8,6 @@ namespace Guardian.Domain.Interfaces.IRepository.User
     {
         bool IsUniqueUser(string username);
         Task<LoginResponseDTO> Login(LoginRequestDTO loginRequest);
-        Task<LocalUser> Register(RegistrationResquestDTO registrationResquest);
+        Task<UserDTO> Register(RegistrationResquestDTO registrationResquest);
     }
 }

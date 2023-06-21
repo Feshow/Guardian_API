@@ -47,7 +47,7 @@ namespace Guardian.Data.Repository
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, int pageSize = 3, int pageNumber = 1)
+        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, int pageSize = 0, int pageNumber = 1)
         {
             //It does not get execute right away
             IQueryable<T> query = dbSet;
@@ -56,7 +56,7 @@ namespace Guardian.Data.Repository
                 query = query.Where(filter);
             }
 
-            if (pageSize > 0)
+            if (pageSize > 0) //Only if page size is provided
             {
                 if (pageSize > 100)
                 {

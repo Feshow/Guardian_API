@@ -36,7 +36,7 @@ namespace Guardian_API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)] 
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse>> GetAll([FromQuery(Name = "Filter Occupancy")] string? occupancy, [FromQuery] string? search, int pageSize = 2, int pageNumber = 1)//Makes the filter optional
+        public async Task<ActionResult<APIResponse>> GetAll([FromQuery(Name = "Filter Occupancy")] string? occupancy, [FromQuery] string? search, int pageSize = 0, int pageNumber = 1)//Makes the filter optional
         {
             try
             {
